@@ -42,6 +42,8 @@ const BLANK_INTERFACE_TEXTS: InterfaceTexts = {
   menu: '',
   openMenu: '',
   closeMenu: '',
+  previous: '',
+  next: '',
   audioPlayer: '',
   play: '',
   pause: '',

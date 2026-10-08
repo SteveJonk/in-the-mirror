@@ -244,6 +244,8 @@ export const SITE_INFORMATION = {
     menu: 'Menu',
     openMenu: 'Menu openen',
     closeMenu: 'Menu sluiten',
+    previous: 'Vorige',
+    next: 'Volgende',
     audioPlayer: 'Audiospeler',
     play: 'Afspelen',
     pause: 'Pauzeren',

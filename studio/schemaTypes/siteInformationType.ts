@@ -135,6 +135,8 @@ export const siteInformationType = defineType({
         uiText('menu', 'Name of the mobile menu', 'navigation'),
         uiText('openMenu', 'Open menu button', 'navigation'),
         uiText('closeMenu', 'Close menu button', 'navigation'),
+        uiText('previous', 'Previous button of a carousel', 'navigation'),
+        uiText('next', 'Next button of a carousel', 'navigation'),
         uiText('audioPlayer', 'Name of the player', 'audio'),
         uiText('play', 'Play button', 'audio'),
         uiText('pause', 'Pause button', 'audio'),
