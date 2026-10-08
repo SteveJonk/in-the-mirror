@@ -581,6 +581,8 @@ export type SiteInformation = {
     menu?: string;
     openMenu?: string;
     closeMenu?: string;
+    previous?: string;
+    next?: string;
     audioPlayer?: string;
     play?: string;
     pause?: string;
@@ -1304,6 +1306,8 @@ export type SITE_INFORMATION_QUERY_RESULT =
         menu?: string;
         openMenu?: string;
         closeMenu?: string;
+        previous?: string;
+        next?: string;
         audioPlayer?: string;
         play?: string;
         pause?: string;

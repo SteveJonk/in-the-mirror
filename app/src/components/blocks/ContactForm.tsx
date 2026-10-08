@@ -29,10 +29,11 @@ export function ContactForm({ block, section, path }: BlockProps<'contactForm'> 
       <RevealGroup className={cn(wrapClass, 'grid md:grid-cols-12 md:gap-x-10', wide ? 'gap-14' : 'gap-16')}>
         <div className={cn(wide ? 'md:col-span-4' : 'md:col-span-5', first && OPENER)}>
           {block.illustration?.src && (
-            <div className={first ? 'mb-12' : undefined}>
+            // Flush left, on the line the title and lead start from.
+            <div className={first ? 'mb-12' : 'mb-10'}>
               <SanityImage
                 image={block.illustration}
-                className={cn('mx-auto h-auto w-full', first ? 'max-w-[20rem]' : 'max-w-[16rem]')}
+                className={cn('h-auto w-full', first ? 'max-w-[18rem]' : 'max-w-[12rem] md:max-w-[14rem]')}
               />
             </div>
           )}
