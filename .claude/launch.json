@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd app && NEXT_PUBLIC_SANITY_PROJECT_ID=${NEXT_PUBLIC_SANITY_PROJECT_ID:-dummyproject} npm run dev"],
+      "port": 3000
+    },
+    {
+      "name": "design",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3100", "--directory", "app/design"],
+      "port": 3100
+    }
+  ]
+}

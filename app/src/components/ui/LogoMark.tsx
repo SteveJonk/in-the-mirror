@@ -1,56 +1,19 @@
 import { cn } from '@/lib/cn';
-import { SITE_DEFAULTS } from '@/lib/site';
 
-type LogoMarkProps = {
-  /** From `siteInformation`; falls back to the default when not passed. */
-  name?: string;
-  className?: string;
-  /** Header mark responds to sticky/mobile; footer is a fixed 90px mark. */
-  variant?: 'header' | 'footer';
-  /** When true (header only), shrinks the mark and hides the subtitle. */
-  stuck?: boolean;
-};
-
-/**
- * The site logo.
- *
- * Ships as a plain wordmark built from the site name so there is nothing to
- * replace before the first run. To use a real logo, swap the inner <span> for
- * an <Image> (or inline SVG) and keep the outer wrapper — the header and
- * footer size the mark through the `--mk` custom property set here, and the
- * `stuck` state animates it on scroll.
- */
-export function LogoMark({
-  name = SITE_DEFAULTS.name,
-  className,
-  variant = 'header',
-  stuck = false,
-}: LogoMarkProps) {
-  const isFooter = variant === 'footer';
-
+/** The moon mark: an ink disc with a paper crescent. Also the favicon (app/icon.svg). */
+export function LogoMark({ className }: { className?: string }) {
   return (
-    <span
-      className={cn(
-        'grid shrink-0 place-items-center rounded-full bg-white',
-        'size-[var(--mk)] transition-transform duration-[400ms] ease-brand',
-        isFooter
-          ? 'mb-[26px] [--mk:90px]'
-          : stuck
-            ? '[--mk:56px] max-md:[--mk:54px]'
-            : '[--mk:80px] max-md:[--mk:66px]',
-        className,
-      )}
+    <svg
+      viewBox='2 2 60 60'
+      className={cn('shrink-0', className)}
+      aria-hidden='true'
+      focusable='false'
     >
-      <span className='px-[calc(var(--mk)*0.12)] text-center leading-none'>
-        <b
-          className={cn(
-            'block font-display text-[length:calc(var(--mk)*0.2)]',
-            'font-normal tracking-[0.005em] text-fg',
-          )}
-        >
-          {name}
-        </b>
-      </span>
-    </span>
+      <circle className='fill-fg' cx='32' cy='32' r='30' />
+      <path
+        className='fill-[#f7f4ef]'
+        d='M31.840 19.001A15 15 0 1 0 46.798 36.452A11.5 11.5 0 1 1 31.840 19.001z'
+      />
+    </svg>
   );
 }

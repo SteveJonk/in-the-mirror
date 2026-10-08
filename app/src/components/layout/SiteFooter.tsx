@@ -1,126 +1,51 @@
-import { LogoMark } from '@/components/ui/LogoMark';
-import { Wrap } from '@/components/ui/Wrap';
-import { cn } from '@/lib/cn';
-import {
-  mailtoHref,
-  resolveSiteInformation,
-  telHref,
-  type FooterLinkGroup,
-  type NavLink,
-  type SiteInformation,
-} from '@/lib/site';
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Reveal, RevealGroup } from '@/components/ui/Reveal';
+import { wrapClass } from '@/components/ui/Wrap';
+import { cn } from '@/lib/cn';
+import { NAV_LINKS, PHOTO_CREDITS } from '@/lib/nav';
 
-function FooterLinkList({ links }: { links: NavLink[] }) {
-  return (
-    <ul className='list-none'>
-      {links.map((link) => (
-        <li key={link.label} className='mb-[11px] text-[0.92rem] max-md:mb-0.5'>
-          <Link
-            href={link.href}
-            className='opacity-90 transition-opacity duration-200 hover:underline hover:opacity-100 hover:underline-offset-4 max-md:inline-block max-md:py-3'
-          >
-            {link.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-type SiteFooterProps = {
-  /** From `getSiteInformation()`; the defaults stand in when not passed. */
-  site?: SiteInformation;
-  linkGroups?: FooterLinkGroup[] | null;
-  copyright?: string | null;
-};
-
-export function SiteFooter({
-  site = resolveSiteInformation(null),
-  linkGroups = [],
-  copyright,
-}: SiteFooterProps) {
-  const groups = linkGroups ?? [];
+export function SiteFooter() {
+  const pathname = usePathname();
+  const credit = PHOTO_CREDITS[pathname];
 
   return (
-    <footer className='bg-inverse pt-24 pb-[34px] text-surface-alt max-sm:pt-[74px]'>
-      <Wrap>
-        <div
-          className={cn(
-            'mb-[70px] grid grid-cols-[1.5fr_1fr_1fr_1.1fr] gap-12',
-            'max-md:grid-cols-2 max-md:gap-10',
-            'max-sm:mb-[46px] max-sm:grid-cols-1 max-sm:gap-[38px]',
-          )}
-        >
-          <div>
-            <LogoMark name={site.name} variant='footer' />
-            <p className='max-w-[270px] text-[0.9rem] leading-[1.75] text-subtle'>
-              {site.description}
-            </p>
-          </div>
-          {groups.map((group) => (
-            <div key={group.title}>
-              <h5 className='mb-5 text-eyebrow font-semibold tracking-[0.22em] text-subtle uppercase'>
-                {group.title}
-              </h5>
-              <FooterLinkList links={group.links ?? []} />
-            </div>
-          ))}
-          <div>
-            <h5 className='mb-5 text-eyebrow font-semibold tracking-[0.22em] text-subtle uppercase'>
-              Contact
-            </h5>
-            <ul className='list-none'>
-              <li className='mb-[11px] text-[0.92rem] max-md:mb-0.5'>
-                {site.address.map((line, index) => (
-                  <span key={line}>
-                    {index > 0 ? <br /> : null}
-                    {line}
-                  </span>
-                ))}
-              </li>
-              <li className='mb-[11px] text-[0.92rem] max-md:mb-0.5'>
+    <footer className='bg-surface-alt py-20 md:py-28'>
+      <RevealGroup className={cn(wrapClass, 'grid gap-14 md:grid-cols-12 md:gap-x-10')}>
+        <Reveal className='md:col-span-5'>
+          <p className='font-display text-[2.2rem] leading-none'>In the Mirror</p>
+          <p className='mt-4 text-muted'>Camilla Amba</p>
+        </Reveal>
+
+        <Reveal as='nav' aria-label='Voetmenu' className='md:col-span-3'>
+          <ul className='space-y-2'>
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
                 <Link
-                  href={telHref(site.phone)}
-                  className='opacity-90 transition-opacity duration-200 hover:underline hover:opacity-100 hover:underline-offset-4 max-md:inline-block max-md:py-3'
+                  href={link.href}
+                  aria-current={pathname === link.href ? 'page' : undefined}
+                  className='underline-offset-[6px] hover:underline aria-[current=page]:underline aria-[current=page]:decoration-1 aria-[current=page]:underline-offset-[8px]'
                 >
-                  {site.phone}
+                  {link.label}
                 </Link>
               </li>
-              <li className='mb-[11px] text-[0.92rem] max-md:mb-0.5'>
-                <Link
-                  href={mailtoHref(site.email)}
-                  className='opacity-90 transition-opacity duration-200 hover:underline hover:opacity-100 hover:underline-offset-4 max-md:inline-block max-md:py-3'
-                >
-                  {site.email}
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div
-          className={cn(
-            'flex flex-wrap items-center justify-between gap-4 border-t border-white/13 pt-[26px]',
-            'text-[0.78rem] text-subtle max-sm:gap-[18px] max-sm:text-[0.74rem]',
-          )}
-        >
-          <span>
-            {copyright || `© ${new Date().getFullYear()} ${site.name}`}
-          </span>
-          {site.badges.length > 0 ? (
-            <div className='flex gap-2.5 max-sm:flex-wrap'>
-              {site.badges.map((badge) => (
-                <span
-                  key={badge}
-                  className='rounded-pill border border-white/22 px-[13px] py-[5px] text-[0.65rem] tracking-[0.14em]'
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </Wrap>
+            ))}
+          </ul>
+        </Reveal>
+
+        <Reveal className='space-y-5 text-[1rem] md:col-span-4'>
+          <p>Aangesloten bij de AVN (Astrologische Vakvereniging Nederland).</p>
+          <p className='text-muted'>
+            Mijn aanbod is geen therapie of crisisopvang en geen vervanging voor reguliere zorg.
+          </p>
+        </Reveal>
+      </RevealGroup>
+
+      <Reveal variant='fade' className={cn(wrapClass, 'mt-20 text-[0.9rem] text-muted')}>
+        <p>© 2026 Camilla Amba.{credit ? ` ${credit}` : ''}</p>
+      </Reveal>
     </footer>
   );
 }

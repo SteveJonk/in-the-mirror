@@ -9,30 +9,28 @@ import type { Metadata } from 'next';
  * Keep the `variable` names as they are and only swap the font, or the theme
  * loses its handle on them. Any next/font/google family works here.
  */
-import { Inter_Tight, Schibsted_Grotesk } from 'next/font/google';
+import { Instrument_Serif, Newsreader } from 'next/font/google';
 import { JsonLd } from '@/components/JsonLd';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { TrackingScriptsBody, TrackingScriptsHead } from '@/components/TrackingScripts';
 import { siteJsonLd } from '@/lib/json-ld';
-import { toLabeledHref, type SanityLabeledLink } from '@/lib/links';
-import { SITE_URL, type FooterLinkGroup, type NavLink } from '@/lib/site';
-import { safeFetch } from '@/sanity/client';
-import { sanityCache } from '@/sanity/fetch';
-import { FOOTER_QUERY, NAVIGATION_QUERY } from '@/sanity/queries';
+import { SITE_URL } from '@/lib/site';
 import { getSiteInformation } from '@/sanity/site-information';
 import './globals.css';
 
-const display = Schibsted_Grotesk({
+const display = Instrument_Serif({
   variable: '--font-display-src',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: '400',
+  style: ['normal', 'italic'],
 });
 
-const sans = Inter_Tight({
+const sans = Newsreader({
   variable: '--font-sans-src',
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  axes: ['opsz'],
+  style: ['normal', 'italic'],
 });
 
 /**
@@ -50,8 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: site.name,
-      template: `%s - ${site.name}`,
+      default: `${site.name} | Camilla Amba`,
+      template: `%s | ${site.name} | Camilla Amba`,
     },
     description: site.description,
     openGraph: {
@@ -61,52 +59,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const options = sanityCache;
-
-type SanityNavigation = {
-  navLeft?: SanityLabeledLink[] | null;
-  navRight?: SanityLabeledLink[] | null;
-} | null;
-
-type SanityFooter = {
-  linkGroups?: Array<{
-    title?: string | null;
-    links?: SanityLabeledLink[] | null;
-  } | null> | null;
-  copyright?: string | null;
-} | null;
-
-function asNavLinks(links: SanityLabeledLink[] | null | undefined): NavLink[] {
-  return (links ?? [])
-    .map((link) => toLabeledHref(link))
-    .filter((link): link is NavLink => Boolean(link));
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Chrome only — a CMS outage leaves the header and footer bare rather than
-  // failing every page. Page content is fetched with `client.fetch` and throws.
-  const [site, navigation, footer] = await Promise.all([
-    getSiteInformation(),
-    safeFetch<SanityNavigation>(NAVIGATION_QUERY, {}, options),
-    safeFetch<SanityFooter>(FOOTER_QUERY, {}, options),
-  ]);
-
-  const navLeft = asNavLinks(navigation?.navLeft);
-  const navRight = asNavLinks(navigation?.navRight);
-
-  const linkGroups: FooterLinkGroup[] = (footer?.linkGroups ?? [])
-    .filter(
-      (group): group is { title: string; links?: SanityLabeledLink[] | null } =>
-        Boolean(group?.title),
-    )
-    .map((group) => ({
-      title: group.title,
-      links: asNavLinks(group.links),
-    }));
+  const site = await getSiteInformation();
 
   return (
     <html
@@ -122,9 +80,15 @@ export default async function RootLayout({
         <TrackingScriptsBody />
         {/* The organisation and the site belong on every page. */}
         <JsonLd data={siteJsonLd(site)} />
-        <SiteHeader siteName={site.name} navLeft={navLeft} navRight={navRight} />
+        <a
+          href='#inhoud'
+          className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2'
+        >
+          Ga naar de inhoud
+        </a>
+        <SiteHeader />
         {children}
-        <SiteFooter site={site} linkGroups={linkGroups} copyright={footer?.copyright} />
+        <SiteFooter />
       </body>
     </html>
   );

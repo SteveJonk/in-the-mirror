@@ -12,18 +12,20 @@
  * component, or an editor's change will not show up there.
  */
 export const SITE_DEFAULTS = {
-  name: 'Fieldnote',
+  name: 'In the Mirror',
   description:
-    'A small design and engineering studio. We take on a handful of projects a year and stay on them until they are finished.',
+    'Open, menselijke gesprekken en workshops vanuit psychologische astrologie (Jungiaanse basis). Zonder oordeel, met alle ruimte voor jouw verhaal.',
   /** BCP 47 language tag. Sets `<html lang>` and `inLanguage` in the graph. */
-  language: 'en',
+  language: 'nl',
+  // ponytail: placeholder contact details from the template, still used by the
+  // seed and check:jsonld scripts. Replace when Sanity is wired up.
   phone: '+31 (0)20 123 4567',
   email: 'hello@fieldnote.example',
   address: ['Prinsengracht 263', '1016 GV Amsterdam'],
   /** ISO 3166-1 alpha-2 code for the address above. Structured data only. */
   addressCountry: 'NL',
   /** Memberships, certifications, awards. Empty hides the footer row. */
-  badges: ['B CORP', 'ISO 27001'],
+  badges: [] as string[],
 } as const;
 
 /**

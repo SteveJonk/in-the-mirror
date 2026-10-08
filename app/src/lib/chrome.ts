@@ -1,5 +1,8 @@
-/** Scroll threshold (px) before the topbar gets the stuck state. */
-export const TOPBAR_STUCK_OFFSET = 60;
+/** Scroll depth (px) below which the header always shows. */
+export const HEADER_HIDE_THRESHOLD = 96;
 
-/** Viewport width above which the mobile nav should close. */
-export const MOBILE_NAV_BREAKPOINT = 960;
+/** Minimum scroll step (px) before the header hides or returns. */
+export const HEADER_SCROLL_DELTA = 8;
+
+/** Viewport width at which the desktop nav replaces the mobile menu (Tailwind `lg`). */
+export const MOBILE_NAV_BREAKPOINT = 1024;

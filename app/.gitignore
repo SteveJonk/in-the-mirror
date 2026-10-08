@@ -44,3 +44,6 @@ next-env.d.ts
 # sentry
 .env.sentry-build-plugin
 .sentryclirc
+
+# podcast audio — moves to a Sanity file asset
+/public/podcast-fragment.m4a

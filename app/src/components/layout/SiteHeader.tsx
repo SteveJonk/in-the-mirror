@@ -2,169 +2,154 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { CSSProperties } from 'react';
 import { LogoMark } from '@/components/ui/LogoMark';
 import { useMobileNav } from '@/hooks/useMobileNav';
 import { useStickyTopbar } from '@/hooks/useStickyTopbar';
 import { cn } from '@/lib/cn';
-import { SITE_DEFAULTS, type NavLink } from '@/lib/site';
+import { NAV_LINKS } from '@/lib/nav';
 
-function isActivePath(pathname: string, href: string) {
-  if (href === '#' || href === '/') return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+const current = (pathname: string, href: string) => (pathname === href ? 'page' : undefined);
+
+function Wordmark({ className }: { className?: string }) {
+  return (
+    <>
+      <LogoMark className={className} />
+      <span>In the Mirror</span>
+    </>
+  );
 }
 
-function DesktopNav({
-  links,
-  align = 'start',
-  stuck,
-}: {
-  links: NavLink[];
-  align?: 'start' | 'end';
-  stuck: boolean;
-}) {
+/** Fixed header: slides away on scroll down, returns on scroll up. Below `lg` a full-screen menu. */
+export function SiteHeader() {
   const pathname = usePathname();
-
-  return (
-    <ul
-      className={cn(
-        'flex list-none items-center gap-[30px] max-lg:gap-[18px] max-md:hidden',
-        align === 'end' && 'justify-end',
-      )}
-    >
-      {links.map((link) => {
-        const active = isActivePath(pathname, link.href);
-        return (
-          <li key={link.label}>
-            <Link
-              href={link.href}
-              className={cn(
-                'relative py-1.5 text-nav font-medium transition-colors duration-[400ms] ease-brand max-lg:text-[0.79rem]',
-                stuck ? 'text-fg' : 'text-white',
-                'after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current',
-                'after:transition-transform after:duration-[350ms] after:ease-brand',
-                'hover:after:origin-left hover:after:scale-x-100',
-                active && 'after:origin-left after:scale-x-100',
-              )}
-            >
-              {link.label}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function Burger({
-  open,
-  stuck,
-  onToggle,
-}: {
-  open: boolean;
-  stuck: boolean;
-  onToggle: () => void;
-}) {
-  const barTone = open || stuck ? 'bg-inverse' : 'bg-white';
-
-  return (
-    <button
-      type='button'
-      aria-label='Menu'
-      aria-expanded={open}
-      onClick={onToggle}
-      className='relative z-[130] mr-[-8px] hidden size-11 max-md:block'
-    >
-      <span
-        className={cn(
-          'absolute left-[9px] h-[1.5px] w-[26px] transition duration-300 ease-brand',
-          barTone,
-          open ? 'top-[22px] rotate-45' : 'top-[15px]',
-        )}
-      />
-      <span
-        className={cn(
-          'absolute top-[22px] left-[9px] h-[1.5px] w-[26px] transition duration-300 ease-brand',
-          barTone,
-          open && 'opacity-0',
-        )}
-      />
-      <span
-        className={cn(
-          'absolute left-[9px] h-[1.5px] w-[26px] transition duration-300 ease-brand',
-          barTone,
-          open ? 'top-[22px] -rotate-45' : 'top-[29px]',
-        )}
-      />
-    </button>
-  );
-}
-
-type SiteHeaderProps = {
-  siteName?: string;
-  navLeft?: NavLink[] | null;
-  navRight?: NavLink[] | null;
-};
-
-export function SiteHeader({
-  siteName = SITE_DEFAULTS.name,
-  navLeft = [],
-  navRight = [],
-}: SiteHeaderProps) {
-  const stuck = useStickyTopbar();
-  const { open, toggle, close } = useMobileNav();
-  const left = navLeft ?? [];
-  const right = navRight ?? [];
-  const navMobile = left.concat(right);
+  const { scrolled, hidden } = useStickyTopbar();
+  const { open, show, close, origin, menuRef, openRef, closeRef } = useMobileNav();
 
   return (
     <>
-      <div
+      <header
         className={cn(
-          'fixed inset-x-0 top-0 z-[120] grid grid-cols-[1fr_auto_1fr] items-center gap-[30px] px-wrap',
-          'transition-[padding,background-color,box-shadow] duration-[400ms] ease-brand',
-          stuck ? 'bg-surface py-2.5 shadow-topbar' : 'bg-transparent py-5',
-          'max-md:flex max-md:justify-between max-md:gap-4 max-md:px-wrap-md',
-          stuck ? 'max-md:py-[9px]' : 'max-md:py-[14px]',
-          'max-xs:px-wrap-sm',
-          'before:pointer-events-none before:absolute before:inset-0 before:-z-10',
-          'before:bg-gradient-to-b before:from-[rgba(28,22,19,0.5)] before:to-transparent',
-          'before:transition-opacity before:duration-[400ms] before:ease-brand',
-          (stuck || open) && 'before:opacity-0',
+          'fixed inset-x-0 top-0 z-30',
+          '[transition:translate_.45s_var(--ease-soft),background-color_.3s_ease,box-shadow_.3s_ease]',
+          hidden &&
+            '-translate-y-full [transition-duration:.3s] [transition-timing-function:var(--ease-exit)]',
+          // Keyboard focus must never sit in a header that has slid away.
+          'has-[:focus-visible]:translate-y-0 motion-reduce:transition-none',
+          scrolled && 'bg-surface/94 shadow-[0_1px_0_var(--color-line)] backdrop-blur-[10px]',
         )}
       >
-        <DesktopNav links={left} stuck={stuck} />
-        <Link href='/' aria-label={siteName}>
-          <LogoMark name={siteName} stuck={stuck} />
-        </Link>
-        <DesktopNav links={right} align='end' stuck={stuck} />
-        <Burger open={open} stuck={stuck} onToggle={toggle} />
-      </div>
-
-      <nav
-        aria-hidden={!open}
-        className={cn(
-          'fixed inset-0 z-[115] flex flex-col justify-center gap-1.5 bg-surface px-wrap',
-          'transition-transform duration-[550ms] ease-brand',
-          open ? 'translate-y-0' : '-translate-y-full',
-          'max-md:justify-start max-md:overflow-y-auto max-md:px-wrap-md max-md:pt-[110px] max-md:pb-11',
-          'max-xs:px-wrap-sm',
-        )}
-      >
-        {navMobile.map((link) => (
+        <div className='mx-auto flex h-[4.5rem] max-w-site items-center justify-between px-6 md:px-12 lg:h-24 lg:px-20'>
           <Link
-            key={link.label}
-            href={link.href}
-            onClick={close}
-            className={cn(
-              'border-b border-fg/10 py-[9px] font-display text-[2rem]',
-              'max-md:py-[13px] max-md:text-[1.72rem]',
-              'max-xs:py-[11px] max-xs:text-[1.5rem]',
-            )}
+            href='/'
+            className='inline-flex items-center gap-3 font-display text-[1.6rem] leading-none tracking-[-0.005em] lg:gap-3.5 lg:text-[1.75rem]'
           >
-            {link.label}
+            <Wordmark className='size-9 lg:size-10' />
           </Link>
-        ))}
-      </nav>
+
+          <nav aria-label='Hoofdmenu' className='hidden lg:block'>
+            <ul className='flex gap-7 xl:gap-11'>
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    aria-current={current(pathname, link.href)}
+                    className='inline-block py-2 font-display text-[1.3rem] leading-none decoration-1 underline-offset-[8px] hover:underline aria-[current=page]:underline'
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <button
+            ref={openRef}
+            type='button'
+            onClick={show}
+            className='-mr-2.5 flex size-11 items-center justify-center lg:hidden'
+            aria-label='Menu openen'
+            aria-expanded={open}
+            aria-controls='menu'
+          >
+            <svg
+              viewBox='0 0 24 24'
+              className='size-7'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
+              strokeLinecap='round'
+              aria-hidden='true'
+            >
+              <path d='M3 7h18M3 12h18M3 17h18' />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* The menu grows as a circle out of the button that opened it; closing is faster. */}
+      <div
+        ref={menuRef}
+        id='menu'
+        role='dialog'
+        aria-modal='true'
+        aria-label='Menu'
+        style={origin}
+        className={cn(
+          'fixed inset-0 z-40 overflow-y-auto bg-surface motion-reduce:transition-none',
+          open
+            ? 'visible [clip-path:circle(var(--r,150vmax)_at_var(--ox,100%)_var(--oy,0px))] [transition:clip-path_.8s_var(--ease-soft),visibility_0s]'
+            : 'invisible [clip-path:circle(0px_at_var(--ox,100%)_var(--oy,0px))] [transition:clip-path_.38s_var(--ease-exit),visibility_0s_linear_.38s]',
+        )}
+      >
+        <div className='mx-auto flex h-[4.5rem] max-w-site items-center justify-between px-6 md:px-12'>
+          <span className='inline-flex items-center gap-3 font-display text-[1.6rem] leading-none'>
+            <Wordmark className='size-9' />
+          </span>
+          <button
+            ref={closeRef}
+            type='button'
+            onClick={() => close()}
+            className='-mr-2.5 flex size-11 items-center justify-center'
+            aria-label='Menu sluiten'
+          >
+            <svg
+              viewBox='0 0 24 24'
+              className={cn('size-7', open && 'animate-cross-in motion-reduce:animate-none')}
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.5'
+              strokeLinecap='round'
+              aria-hidden='true'
+            >
+              <path d='M5 5l14 14M19 5L5 19' />
+            </svg>
+          </button>
+        </div>
+        <ul className='mx-auto mt-12 max-w-site space-y-2 px-6 font-display text-[2.4rem] leading-tight md:px-12'>
+          {NAV_LINKS.map((link, i) => (
+            <li
+              key={link.href}
+              style={{ '--i': i } as CSSProperties}
+              className={cn(
+                'motion-reduce:transition-none',
+                open
+                  ? '[transition:opacity_.6s_var(--ease-soft)_calc(.22s_+_var(--i)_*_70ms),translate_.8s_var(--ease-soft)_calc(.22s_+_var(--i)_*_70ms)]'
+                  : 'translate-y-[22px] opacity-0 [transition:opacity_.2s_ease,translate_.2s_ease]',
+              )}
+            >
+              <Link
+                href={link.href}
+                onClick={() => close(false)}
+                aria-current={current(pathname, link.href)}
+                className='block py-2 decoration-1 underline-offset-[8px] aria-[current=page]:underline'
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 }

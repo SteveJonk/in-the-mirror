@@ -22,46 +22,71 @@
 
 @theme {
   /* --- Palette -----------------------------------------------------------
-     Ships as neutral Tailwind slate so a fresh project looks like plain
-     Tailwind rather than someone else's brand. Swap these twelve values.
+     "In the Mirror": warm paper, petrol-anthracite ink and a soft lilac.
 
-     surface / surface-alt : page and panel backgrounds
+     surface / surface-alt : page (paper) and alternate sections (stone)
      fg / muted / subtle   : text, in descending emphasis
+     line                  : hairlines and dividers
      inverse / inverse-fg  : dark bands and the text that sits on them
-     accent*               : soft fills, tags, quiet highlights
-     brand*                : primary buttons and the loudest UI
+     accent*               : soft fills (lilac mist), quiet highlights
+     brand*                : primary buttons and the loudest UI (lilac)
      ---------------------------------------------------------------------- */
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8fafc;
+  --color-surface: #f8f2e8;
+  --color-surface-alt: #f1e7d7;
 
-  --color-fg: #0f172a;
-  --color-muted: #475569;
-  --color-subtle: #94a3b8;
+  --color-fg: #1f3a42;
+  --color-muted: #5a6b70;
+  --color-subtle: #5a6b70;
+  --color-line: #e2d5c0;
 
-  --color-inverse: #0f172a;
-  --color-inverse-fg: #f8fafc;
+  --color-inverse: #1f3a42;
+  --color-inverse-fg: #f8f2e8;
 
-  --color-accent: #e2e8f0;
-  --color-accent-deep: #cbd5e1;
-  --color-accent-strong: #0284c7;
+  --color-accent: #e9e4f2;
+  --color-accent-deep: #b8a9d9;
+  --color-accent-strong: #1f3a42;
 
-  --color-brand: #0f172a;
-  --color-brand-hover: #1e293b;
-  --color-brand-deep: #334155;
-  --color-brand-fg: #f8fafc;
+  --color-brand: #b8a9d9;
+  --color-brand-hover: #a99bcd;
+  --color-brand-deep: #a99bcd;
+  --color-brand-fg: #1f3a42;
 
-  /* The one colour that must read as "something went wrong" — form errors. */
-  --color-danger: #b91c1c;
+  /* The one colour that must read as "something went wrong" — form errors
+     (taken from the artwork's border). */
+  --color-danger: #8a2e4d;
 
   /* --- Typography --------------------------------------------------------
      `--font-display` is used by h1/h2/h3 (see the base layer below).
      `--font-sans` is everything else. Both fall back to system fonts if the
      next/font variable is missing, so the site still renders during setup.
      ---------------------------------------------------------------------- */
-  --font-display: var(--font-display-src), Georgia, "Times New Roman", serif;
-  --font-sans:
-    var(--font-sans-src), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  --font-display: var(--font-display-src), Georgia, serif;
+  --font-sans: var(--font-sans-src), Georgia, serif;
+
+  /* Heading scale. `text-hero` is the home opener, `text-h1` every other
+     page opener, `text-h2` section titles, `text-h3` sub-titles. */
+  --text-hero: clamp(2.9rem, 5.2vw, 5.2rem);
+  --text-hero--line-height: 0.98;
+  --text-hero--letter-spacing: -0.015em;
+  --text-h1: clamp(2.7rem, 5.6vw, 5rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h2: clamp(2.4rem, 4.4vw, 4.1rem);
+  --text-h2--line-height: 1.03;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: clamp(1.7rem, 2.4vw, 2.2rem);
+  --text-h3--line-height: 1.15;
+  --text-quote: clamp(1.9rem, 3.2vw, 2.8rem);
+  --text-quote--line-height: 1.15;
+  --text-price: clamp(2.6rem, 4vw, 3.6rem);
+  --text-price--line-height: 1;
+  /* The larger opening paragraph under a page title. */
+  --text-intro: 1.3rem;
+  --text-intro--line-height: 1.6;
+  --text-intro-lg: 1.4rem;
+  --text-intro-lg--line-height: 1.6;
+
+  /* The sizes below belong to the template blocks in components/blocks. */
 
   /* Named sizes for the recurring bits of UI, so a heading scale change does
      not mean hunting through components for magic rem values. */
@@ -84,9 +109,8 @@
   --text-arrow--letter-spacing: 0.02em;
 
   /* --- Layout ------------------------------------------------------------
-     `wrap` is the page gutter (used by <Wrap>), `section` the vertical
-     rhythm between blocks. The `-sm` / `-md` variants are the responsive
-     steps down. Widen `--container-site` for a roomier site.
+     `site` is the content width (used by <Wrap>). The `wrap` / `section`
+     spacings belong to the template blocks in components/blocks.
      ---------------------------------------------------------------------- */
   --spacing-wrap: 44px;
   --spacing-wrap-md: 24px;
@@ -94,15 +118,11 @@
   --spacing-section: 130px;
   --spacing-section-sm: 82px;
 
-  --container-site: 1280px;
+  --container-site: 1320px;
 
-  /* Breakpoints deliberately differ from the Tailwind defaults — the layouts
-     in src/components are built against these. Change with care. */
+  /* Tailwind's default breakpoints, plus one small step for the template
+     blocks. */
   --breakpoint-xs: 400px;
-  --breakpoint-sm: 760px;
-  --breakpoint-md: 960px;
-  --breakpoint-lg: 1120px;
-  --breakpoint-xl: 1360px;
 
   /* --- Shape and motion -------------------------------------------------- */
   --radius-pill: 100px;
@@ -113,10 +133,48 @@
   --shadow-topbar: 0 1px 0 rgb(15 23 42 / 0.09);
 
   --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-exit: cubic-bezier(0.5, 0, 0.9, 0.4);
+
+  /* Page openers: the words arrive, the artwork surfaces. */
+  --animate-arrive: arrive 1.5s 0.45s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  --animate-unveil: unveil 1.8s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+  --animate-cross-in: cross-in 0.55s 0.28s var(--ease-soft) both;
 
   --animate-hero-cycle: hero-cycle 22.5s infinite;
   --animate-cue: cue 2.4s infinite;
   --animate-spin-in: spin-in 0.9s var(--ease-brand) both;
+
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes unveil {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes cross-in {
+    from {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
   @keyframes hero-cycle {
     0% {
@@ -163,21 +221,35 @@
   }
 }
 
+/* Scroll reveal is opt-in: its hidden states only apply when scripts run and
+   the visitor accepts motion. See components/ui/Reveal.tsx. */
+@custom-variant reveal {
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    @slot;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply overflow-x-hidden bg-surface font-sans text-fg antialiased;
-    font-size: 16px;
+    @apply overflow-x-hidden bg-surface font-sans text-[1.1875rem] leading-[1.7] text-fg antialiased;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-display font-normal leading-[1.02] tracking-[-0.02em];
+  a,
+  button,
+  input,
+  textarea,
+  label {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-fg;
   }
 
   ::selection {
