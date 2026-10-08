@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { buttonClass } from '@/components/ui/Button';
+import { ctaClass } from '@/components/ui/Cta';
 
 // Literal env read: Next inlines it at build time, like everywhere else Sentry is gated.
 const enabled = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
@@ -54,10 +54,10 @@ export function SentryTest({ secret }: { secret: string }) {
         <strong>{enabled ? 'enabled' : 'disabled: NEXT_PUBLIC_SENTRY_DSN is not set'}</strong>.
       </p>
       <div className='flex flex-wrap gap-3.5'>
-        <button type='button' className={buttonClass()} onClick={throwClientError}>
+        <button type='button' className={ctaClass()} onClick={throwClientError}>
           Throw client error
         </button>
-        <button type='button' className={buttonClass('outline')} onClick={triggerServerError}>
+        <button type='button' className={ctaClass('outline')} onClick={triggerServerError}>
           Throw server error
         </button>
       </div>

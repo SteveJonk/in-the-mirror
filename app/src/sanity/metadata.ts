@@ -35,11 +35,16 @@ type Options = {
    * an unset `seo.title` falls through to the layout default instead.
    */
   isHome?: boolean;
+  /** The <title> of a page that does not exist — from Site information → Interface texts. */
+  notFoundTitle?: string;
 };
 
 export function pageMetadata(page: SanityPage, options?: Options): Metadata {
   if (!page) {
-    return { title: 'Page not found', robots: { index: false } };
+    return {
+      ...(options?.notFoundTitle ? { title: options.notFoundTitle } : {}),
+      robots: { index: false },
+    };
   }
 
   const seo = page.seo ?? {};

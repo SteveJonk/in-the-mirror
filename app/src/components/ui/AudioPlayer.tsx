@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useInterfaceTexts } from '@/components/layout/InterfaceTexts';
 import { cn } from '@/lib/cn';
 
 const fmt = (s: number) =>
@@ -16,8 +17,22 @@ const scrubClass = cn(
 
 const skipClass = 'min-h-11 underline decoration-1 underline-offset-[6px] hover:decoration-2';
 
-/** A quiet audio player: play/pause, a scrubber and 15-second skips. */
-export function AudioPlayer({ src, title }: { src: string; title: string }) {
+/**
+ * A quiet audio player: play/pause, a scrubber and 15-second skips. With a
+ * title it names the fragment beside the button; without one (when the title
+ * is a heading next to it) only the duration shows.
+ */
+export function AudioPlayer({
+  src,
+  title,
+  name = title,
+}: {
+  src: string;
+  title?: string | null;
+  /** What screen readers call the player, when the title is shown elsewhere. */
+  name?: string | null;
+}) {
+  const ui = useInterfaceTexts();
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -34,7 +49,7 @@ export function AudioPlayer({ src, title }: { src: string; title: string }) {
   };
 
   return (
-    <div role='group' aria-label='Audiospeler'>
+    <div role='group' aria-label={name ? `${ui.audioPlayer}: ${name}` : ui.audioPlayer}>
       <audio
         ref={audio}
         preload='metadata'
@@ -51,7 +66,7 @@ export function AudioPlayer({ src, title }: { src: string; title: string }) {
           type='button'
           onClick={() => (audio.current?.paused ? audio.current.play().catch(() => {}) : audio.current?.pause())}
           className='flex size-[4.5rem] shrink-0 items-center justify-center rounded-full border border-fg transition-colors duration-200 hover:border-brand hover:bg-brand aria-pressed:border-brand aria-pressed:bg-brand'
-          aria-label={playing ? 'Pauzeren' : 'Afspelen'}
+          aria-label={playing ? ui.pause : ui.play}
           aria-pressed={playing}
         >
           {playing ? (
@@ -66,9 +81,9 @@ export function AudioPlayer({ src, title }: { src: string; title: string }) {
           )}
         </button>
         <div>
-          <p className='font-display text-[1.7rem] leading-tight'>{title}</p>
-          <p className='text-[0.95rem] text-muted'>
-            Duur <span className='tabular-nums'>{fmt(duration)}</span>
+          {title && <p className='font-display text-[1.7rem] leading-tight'>{title}</p>}
+          <p className={title ? 'text-[0.95rem] text-muted' : 'text-[1.05rem]'}>
+            {ui.duration} <span className='tabular-nums'>{fmt(duration)}</span>
           </p>
         </div>
       </div>
@@ -83,8 +98,8 @@ export function AudioPlayer({ src, title }: { src: string; title: string }) {
           onChange={(e) => seek(parseFloat(e.currentTarget.value))}
           className={scrubClass}
           style={{ '--p': known ? `${(time / duration) * 100}%` : '0%' } as CSSProperties}
-          aria-label='Voortgang van het fragment'
-          aria-valuetext={`${fmt(time)}${known ? ` van ${fmt(duration)}` : ''}`}
+          aria-label={ui.progress}
+          aria-valuetext={`${fmt(time)}${known ? ` ${ui.of} ${fmt(duration)}` : ''}`}
         />
         <div className='mt-1 flex justify-between text-[0.92rem] text-muted tabular-nums'>
           <span>{fmt(time)}</span>
@@ -94,14 +109,14 @@ export function AudioPlayer({ src, title }: { src: string; title: string }) {
 
       <div className='mt-2 flex gap-8 text-[0.98rem]'>
         <button type='button' onClick={() => seek(Math.max(0, time - 15))} className={skipClass}>
-          15 seconden terug
+          {ui.back}
         </button>
         <button
           type='button'
           onClick={() => seek(Math.min(known ? duration : Infinity, time + 15))}
           className={skipClass}
         >
-          15 seconden vooruit
+          {ui.forward}
         </button>
       </div>
     </div>

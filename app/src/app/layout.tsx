@@ -11,11 +11,21 @@ import type { Metadata } from 'next';
  */
 import { Instrument_Serif, Newsreader } from 'next/font/google';
 import { JsonLd } from '@/components/JsonLd';
+import { InterfaceTextsProvider } from '@/components/layout/InterfaceTexts';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { TrackingScriptsBody, TrackingScriptsHead } from '@/components/TrackingScripts';
 import { siteJsonLd } from '@/lib/json-ld';
-import { SITE_URL } from '@/lib/site';
+import { pathForSlug, toLabeledHref } from '@/lib/links';
+import { SITE_URL, type NavLink } from '@/lib/site';
+import { safeFetch } from '@/sanity/client';
+import { sanityCache } from '@/sanity/fetch';
+import { FOOTER_QUERY, NAVIGATION_QUERY, PHOTO_CREDITS_QUERY } from '@/sanity/queries';
+import type {
+  FOOTER_QUERY_RESULT,
+  NAVIGATION_QUERY_RESULT,
+  PHOTO_CREDITS_QUERY_RESULT,
+} from '@/sanity/sanity.types';
 import { getSiteInformation } from '@/sanity/site-information';
 import './globals.css';
 
@@ -44,12 +54,14 @@ const sans = Newsreader({
  */
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteInformation();
+  // "In the Mirror | Camilla Amba" — the site name, then whoever is behind it.
+  const brand = [site.name, site.owner].filter(Boolean).join(' | ');
 
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: `${site.name} | Camilla Amba`,
-      template: `%s | ${site.name} | Camilla Amba`,
+      default: brand,
+      template: `%s | ${brand}`,
     },
     description: site.description,
     openGraph: {
@@ -64,7 +76,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const site = await getSiteInformation();
+  // Chrome only — a CMS outage leaves the header and footer bare rather than
+  // failing every page. Page content is fetched with `client.fetch` and throws.
+  const [site, navigation, footer, credits] = await Promise.all([
+    getSiteInformation(),
+    safeFetch<NAVIGATION_QUERY_RESULT>(NAVIGATION_QUERY, {}, sanityCache),
+    safeFetch<FOOTER_QUERY_RESULT>(FOOTER_QUERY, {}, sanityCache),
+    safeFetch<PHOTO_CREDITS_QUERY_RESULT>(PHOTO_CREDITS_QUERY, {}, sanityCache),
+  ]);
+
+  const links = (navigation?.links ?? [])
+    .map(toLabeledHref)
+    .filter((link): link is NavLink => Boolean(link));
+  const photoCredits = Object.fromEntries(
+    (credits ?? []).map((page) => [pathForSlug(page.slug), page.photoCredit ?? '']),
+  );
+  const ui = site.interfaceTexts;
 
   return (
     <html
@@ -80,15 +107,25 @@ export default async function RootLayout({
         <TrackingScriptsBody />
         {/* The organisation and the site belong on every page. */}
         <JsonLd data={siteJsonLd(site)} />
-        <a
-          href='#inhoud'
-          className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2'
-        >
-          Ga naar de inhoud
-        </a>
-        <SiteHeader />
-        {children}
-        <SiteFooter />
+        <InterfaceTextsProvider value={ui}>
+          <a
+            href='#inhoud'
+            className='sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2'
+          >
+            {ui.skipToContent}
+          </a>
+          <SiteHeader siteName={site.name} links={links} />
+          {children}
+          <SiteFooter
+            siteName={site.name}
+            owner={site.owner}
+            links={links}
+            text={footer?.text}
+            smallPrint={footer?.smallPrint}
+            copyright={footer?.copyright}
+            photoCredits={photoCredits}
+          />
+        </InterfaceTextsProvider>
       </body>
     </html>
   );

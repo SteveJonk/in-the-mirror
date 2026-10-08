@@ -6,22 +6,24 @@ import type { CSSProperties } from 'react';
 import { LogoMark } from '@/components/ui/LogoMark';
 import { useMobileNav } from '@/hooks/useMobileNav';
 import { useStickyTopbar } from '@/hooks/useStickyTopbar';
+import { useInterfaceTexts } from '@/components/layout/InterfaceTexts';
 import { cn } from '@/lib/cn';
-import { NAV_LINKS } from '@/lib/nav';
+import type { NavLink } from '@/lib/site';
 
 const current = (pathname: string, href: string) => (pathname === href ? 'page' : undefined);
 
-function Wordmark({ className }: { className?: string }) {
+function Wordmark({ name, className }: { name: string; className?: string }) {
   return (
     <>
       <LogoMark className={className} />
-      <span>In the Mirror</span>
+      <span>{name}</span>
     </>
   );
 }
 
 /** Fixed header: slides away on scroll down, returns on scroll up. Below `lg` a full-screen menu. */
-export function SiteHeader() {
+export function SiteHeader({ siteName, links }: { siteName: string; links: NavLink[] }) {
+  const ui = useInterfaceTexts();
   const pathname = usePathname();
   const { scrolled, hidden } = useStickyTopbar();
   const { open, show, close, origin, menuRef, openRef, closeRef } = useMobileNav();
@@ -44,12 +46,12 @@ export function SiteHeader() {
             href='/'
             className='inline-flex items-center gap-3 font-display text-[1.6rem] leading-none tracking-[-0.005em] lg:gap-3.5 lg:text-[1.75rem]'
           >
-            <Wordmark className='size-9 lg:size-10' />
+            <Wordmark name={siteName} className='size-9 lg:size-10' />
           </Link>
 
-          <nav aria-label='Hoofdmenu' className='hidden lg:block'>
+          <nav aria-label={ui.mainMenu} className='hidden lg:block'>
             <ul className='flex gap-7 xl:gap-11'>
-              {NAV_LINKS.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -68,7 +70,7 @@ export function SiteHeader() {
             type='button'
             onClick={show}
             className='-mr-2.5 flex size-11 items-center justify-center lg:hidden'
-            aria-label='Menu openen'
+            aria-label={ui.openMenu}
             aria-expanded={open}
             aria-controls='menu'
           >
@@ -93,7 +95,7 @@ export function SiteHeader() {
         id='menu'
         role='dialog'
         aria-modal='true'
-        aria-label='Menu'
+        aria-label={ui.menu}
         style={origin}
         className={cn(
           'fixed inset-0 z-40 overflow-y-auto bg-surface motion-reduce:transition-none',
@@ -104,14 +106,14 @@ export function SiteHeader() {
       >
         <div className='mx-auto flex h-[4.5rem] max-w-site items-center justify-between px-6 md:px-12'>
           <span className='inline-flex items-center gap-3 font-display text-[1.6rem] leading-none'>
-            <Wordmark className='size-9' />
+            <Wordmark name={siteName} className='size-9' />
           </span>
           <button
             ref={closeRef}
             type='button'
             onClick={() => close()}
             className='-mr-2.5 flex size-11 items-center justify-center'
-            aria-label='Menu sluiten'
+            aria-label={ui.closeMenu}
           >
             <svg
               viewBox='0 0 24 24'
@@ -127,7 +129,7 @@ export function SiteHeader() {
           </button>
         </div>
         <ul className='mx-auto mt-12 max-w-site space-y-2 px-6 font-display text-[2.4rem] leading-tight md:px-12'>
-          {NAV_LINKS.map((link, i) => (
+          {links.map((link, i) => (
             <li
               key={link.href}
               style={{ '--i': i } as CSSProperties}

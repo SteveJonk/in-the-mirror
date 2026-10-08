@@ -1,32 +1,66 @@
+import type { SITE_INFORMATION_QUERY_RESULT } from '@/sanity/sanity.types';
+
 /**
  * Site-wide details, and the defaults they fall back to.
  *
- * These live in the CMS as the `siteInformation` singleton. The constants here
- * do two jobs at once, the same way `demo-content.ts` does for blocks: they are
- * what the front end falls back to when a field is empty (or the CMS is
- * unreachable), **and** they are what `npm run seed:site` pushes into Sanity.
- * Replace them once per project and both sides move together.
+ * Everything here lives in the CMS as the `siteInformation` singleton, so the
+ * defaults are deliberately neutral: an empty field — or an unreachable CMS —
+ * renders nothing rather than stale copy. Only the two codes that structured
+ * data cannot do without have a real value.
  *
  * Read the resolved values with `getSiteInformation()` from
- * `src/sanity/site-information.ts` — never reach for `SITE_DEFAULTS` in a
- * component, or an editor's change will not show up there.
+ * `src/sanity/site-information.ts`.
  */
 export const SITE_DEFAULTS = {
-  name: 'In the Mirror',
-  description:
-    'Open, menselijke gesprekken en workshops vanuit psychologische astrologie (Jungiaanse basis). Zonder oordeel, met alle ruimte voor jouw verhaal.',
+  name: '',
+  owner: '',
+  description: '',
   /** BCP 47 language tag. Sets `<html lang>` and `inLanguage` in the graph. */
   language: 'nl',
-  // ponytail: placeholder contact details from the template, still used by the
-  // seed and check:jsonld scripts. Replace when Sanity is wired up.
-  phone: '+31 (0)20 123 4567',
-  email: 'hello@fieldnote.example',
-  address: ['Prinsengracht 263', '1016 GV Amsterdam'],
+  phone: '',
+  email: '',
+  address: [] as string[],
   /** ISO 3166-1 alpha-2 code for the address above. Structured data only. */
   addressCountry: 'NL',
-  /** Memberships, certifications, awards. Empty hides the footer row. */
   badges: [] as string[],
 } as const;
+
+type InterfaceTextsDocument = NonNullable<
+  NonNullable<SITE_INFORMATION_QUERY_RESULT>['interfaceTexts']
+>;
+
+/** Every small interface text (menu buttons, player labels, form messages), blank when unset. */
+export type InterfaceTexts = {
+  [K in Exclude<keyof InterfaceTextsDocument, '_type'>]-?: string;
+};
+
+/** One entry per text; the type makes sure none is missing when the schema grows. */
+const BLANK_INTERFACE_TEXTS: InterfaceTexts = {
+  skipToContent: '',
+  mainMenu: '',
+  footerMenu: '',
+  menu: '',
+  openMenu: '',
+  closeMenu: '',
+  audioPlayer: '',
+  play: '',
+  pause: '',
+  duration: '',
+  progress: '',
+  of: '',
+  back: '',
+  forward: '',
+  required: '',
+  invalidEmail: '',
+  checkFields: '',
+  sending: '',
+  sendFailed: '',
+  recaptcha: '',
+  stepCounter: '',
+  notFoundTitle: '',
+  notFoundText: '',
+  notFoundButton: '',
+};
 
 /**
  * The site's public origin, without a trailing slash.
@@ -37,7 +71,7 @@ export const SITE_DEFAULTS = {
  * localhost default keeps `npm run dev` working; set NEXT_PUBLIC_SITE_URL in
  * production.
  */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(
   /\/+$/,
   '',
 );
@@ -45,6 +79,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3
 /** Site details with every field filled in — defaults where the CMS is empty. */
 export type SiteInformation = {
   name: string;
+  owner: string;
   description: string;
   language: string;
   phone: string;
@@ -55,11 +90,13 @@ export type SiteInformation = {
   /** Profile URLs elsewhere. Empty unless an editor adds some. */
   socialLinks: string[];
   logoUrl: string | null;
+  interfaceTexts: InterfaceTexts;
 };
 
 /** What the CMS hands over: every field optional, any of them blank. */
 export type SiteInformationDocument = {
   name?: string | null;
+  owner?: string | null;
   description?: string | null;
   language?: string | null;
   phone?: string | null;
@@ -69,6 +106,7 @@ export type SiteInformationDocument = {
   badges?: Array<string | null> | null;
   socialLinks?: Array<string | null> | null;
   logoUrl?: string | null;
+  interfaceTexts?: Partial<Record<keyof InterfaceTexts, string | null>> | null;
 } | null;
 
 function text(value: string | null | undefined, fallback: string): string {
@@ -93,6 +131,7 @@ function list(
 export function resolveSiteInformation(doc: SiteInformationDocument): SiteInformation {
   return {
     name: text(doc?.name, SITE_DEFAULTS.name),
+    owner: text(doc?.owner, SITE_DEFAULTS.owner),
     description: text(doc?.description, SITE_DEFAULTS.description),
     language: text(doc?.language, SITE_DEFAULTS.language),
     phone: text(doc?.phone, SITE_DEFAULTS.phone),
@@ -102,6 +141,12 @@ export function resolveSiteInformation(doc: SiteInformationDocument): SiteInform
     badges: list(doc?.badges, SITE_DEFAULTS.badges),
     socialLinks: list(doc?.socialLinks),
     logoUrl: doc?.logoUrl?.trim() || null,
+    interfaceTexts: Object.fromEntries(
+      Object.keys(BLANK_INTERFACE_TEXTS).map((key) => [
+        key,
+        doc?.interfaceTexts?.[key as keyof InterfaceTexts]?.trim() ?? '',
+      ]),
+    ) as InterfaceTexts,
   };
 }
 

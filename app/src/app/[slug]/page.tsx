@@ -27,7 +27,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
 
-  return pageMetadata(await client.fetch(PAGE_QUERY, { slug }, options));
+  const [page, site] = await Promise.all([
+    client.fetch(PAGE_QUERY, { slug }, options),
+    getSiteInformation(),
+  ]);
+  return pageMetadata(page, { notFoundTitle: site.interfaceTexts.notFoundTitle });
 }
 
 export default async function SanityPage({ params }: PageProps) {
@@ -65,7 +69,7 @@ export default async function SanityPage({ params }: PageProps) {
           ],
         })}
       />
-      <main>
+      <main id='inhoud'>
         <PageBuilder content={page.content} path={path} />
       </main>
     </>

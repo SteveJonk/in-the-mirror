@@ -10,8 +10,11 @@ export const SANITY_TAG = 'sanity';
 /**
  * Safety net only. If the webhook is misconfigured or a delivery is lost, the
  * cache still refreshes within an hour instead of staying stale.
+ *
+ * In development there is no webhook, so nothing is cached: a change
+ * published in the studio shows on the next refresh.
  */
-export const REVALIDATE = 3600;
+export const REVALIDATE = process.env.NODE_ENV === 'development' ? 0 : 3600;
 
 /** Fetch options shared by every cached Sanity read. */
 export const sanityCache = { next: { revalidate: REVALIDATE, tags: [SANITY_TAG] } };

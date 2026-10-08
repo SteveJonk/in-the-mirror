@@ -15,26 +15,6 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: ../app/src/sanity/schema.json
-export type Highlight = {
-  badge?: string;
-  title?: string;
-  body?: string;
-  cta?: Cta;
-};
-
-export type Aside = {
-  title?: string;
-  body?: string;
-  items?: Array<{
-    icon: "phone" | "whatsapp" | "mail" | "pin";
-    title: string;
-    subtitle?: string;
-    _type: "contactItem";
-    _key: string;
-  }>;
-  cta?: Cta;
-};
-
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -42,20 +22,39 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
-export type ObjectImage = {
-  asset?: SanityImageAssetReference;
-  media?: unknown; // Unable to locate the referenced type "object.image.media" in schema
+export type Illustration = {
+  asset: SanityImageAssetReference;
+  media?: unknown; // Unable to locate the referenced type "illustration.media" in schema
   hotspot?: SanityImageHotspot;
   crop?: SanityImageCrop;
-  alt: string;
+  alt?: string;
   _type: "image";
 };
 
-export type ItemsObjectImage = {
-  asset?: SanityImageAssetReference;
-  media?: unknown; // Unable to locate the referenced type "items.object.image.media" in schema
+export type Icon = {
+  asset: SanityImageAssetReference;
+  media?: unknown; // Unable to locate the referenced type "icon.media" in schema
   hotspot?: SanityImageHotspot;
   crop?: SanityImageCrop;
+  alt?: string;
+  _type: "image";
+};
+
+export type TextColumnIllustration = {
+  asset: SanityImageAssetReference;
+  media?: unknown; // Unable to locate the referenced type "textColumn.illustration.media" in schema
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt?: string;
+  _type: "image";
+};
+
+export type OptionIcon = {
+  asset: SanityImageAssetReference;
+  media?: unknown; // Unable to locate the referenced type "option.icon.media" in schema
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  alt?: string;
   _type: "image";
 };
 
@@ -68,226 +67,329 @@ export type FormReference = {
 
 export type ContactForm = {
   _type: "contactForm";
-  eyebrow: string;
-  title: string;
-  lead: string;
-  form: FormReference;
-  note?: string;
-  aside?: Aside;
-};
-
-export type CtaBand = {
-  _type: "ctaBand";
-  image: {
-    asset?: SanityImageAssetReference;
+  illustration?: {
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt: string;
+    alt?: string;
     _type: "image";
   };
-  eyebrow: string;
   title: string;
-  body: string;
-  primaryCta?: Cta;
-  secondaryCta?: Cta;
+  lead?: string;
+  note?: string;
+  links?: Array<
+    {
+      _key: string;
+    } & Cta
+  >;
+  form: FormReference;
+  showRequiredMarks?: boolean;
+  wideForm?: boolean;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
-export type CrossLinks = {
-  _type: "crossLinks";
-  items: Array<{
-    title: string;
-    body: string;
-    link: Link;
-    _key: string;
-  }>;
+export type Calendar = {
+  _type: "calendar";
+  title: string;
+  lead?: string;
+  embedUrl?: string;
+  placeholderTitle?: string;
+  placeholderText?: string;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
-export type FaqReference = {
+export type EpisodeReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "faq";
+  [internalGroqTypeReferenceTo]?: "episode";
 };
 
-export type Faqs = {
-  _type: "faqs";
-  eyebrow: string;
-  title: string;
-  intro: string;
-  link?: Cta;
-  faqs: Array<
+export type Episodes = {
+  _type: "episodes";
+  title?: string;
+  episodes?: Array<
     {
       _key: string;
-    } & FaqReference
+    } & EpisodeReference
   >;
+  footnote?: string;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
-export type Steps = {
-  _type: "steps";
-  eyebrow: string;
+export type Schedule = {
+  _type: "schedule";
   title: string;
-  lead: string;
+  lead?: string;
   cta?: Cta;
-  items: Array<{
-    number: string;
+  slots?: Array<{
+    time: string;
     title: string;
-    body: string;
-    image: ItemsObjectImage;
+    description?: string;
+    _type: "slot";
     _key: string;
   }>;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
-export type Benefits = {
-  _type: "benefits";
-  eyebrow: string;
+export type Pricing = {
+  _type: "pricing";
   title: string;
-  lead: string;
+  plans?: Array<{
+    title: string;
+    subtitle?: string;
+    price: string;
+    body?: string;
+    _type: "plan";
+    _key: string;
+  }>;
+  optionsLabel?: string;
+  options?: Array<{
+    icon?: OptionIcon;
+    label: string;
+    _type: "option";
+    _key: string;
+  }>;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type Callout = {
+  _type: "callout";
+  title: string;
+  body?: string;
+  cta?: Cta;
+  size?: "small" | "large";
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type FeatureImage = {
+  _type: "featureImage";
   image: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt: string;
+    alt?: string;
     _type: "image";
   };
-  items: Array<{
-    icon:
-      "person" | "camera" | "chart" | "doc" | "house" | "renovate" | "scale";
-    title: string;
-    body: string;
-    _key: string;
-  }>;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
-export type PageHero = {
-  _type: "pageHero";
-  image: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt: string;
-    _type: "image";
-  };
-  breadcrumbLabel?: string;
-  eyebrow: string;
+export type Quote = {
+  _type: "quote";
+  text: string;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type TextColumns = {
+  _type: "textColumns";
+  columns?: Array<{
+    title?: string;
+    body?: RichText;
+    illustration?: TextColumnIllustration;
+    _type: "textColumn";
+    _key: string;
+  }>;
+  cta?: Cta;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type Columns = {
+  _type: "columns";
   title: string;
-  titleHighlight?: string;
-  lead: string;
-  primaryCta?: Cta;
-  secondaryCta?: Cta;
+  intro?: string;
+  items?: Array<{
+    icon?: Icon;
+    title: string;
+    body?: string;
+    _type: "column";
+    _key: string;
+  }>;
+  footnote?: string;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type PageReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "page";
+};
+
+export type Tiles = {
+  _type: "tiles";
+  items?: Array<{
+    label: string;
+    linkType: "internal" | "external";
+    internalLink?: PageReference;
+    href?: string;
+    illustration: Illustration;
+    _type: "tile";
+    _key: string;
+  }>;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
 export type MediaText = {
   _type: "mediaText";
-  eyebrow: string;
+  title?: string;
+  body?: RichText;
+  facts?: Array<{
+    label: string;
+    value: string;
+    _type: "fact";
+    _key: string;
+  }>;
+  factsNote?: string;
+  episode?: EpisodeReference;
+  cta?: Cta;
+  ctaStyle?: "solid" | "outline";
+  textLink?: Cta;
+  media?:
+    | "image"
+    | "illustration"
+    | "illustrationCard"
+    | "mirror"
+    | "priceCard"
+    | "none";
+  image?: {
+    asset: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  priceCard?: Array<{
+    label: string;
+    value: string;
+    isPrice?: boolean;
+    note?: string;
+    _type: "priceRow";
+    _key: string;
+  }>;
+  mediaLeft?: boolean;
+  mediaSmall?: boolean;
+  indent?: boolean;
+  alignTop?: boolean;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type PageHero = {
+  _type: "pageHero";
   title: string;
-  paragraphs: Array<string>;
+  intro?: string;
+  italic?: boolean;
+  attribution?: string;
+  facts?: Array<{
+    label: string;
+    value: string;
+    _type: "fact";
+    _key: string;
+  }>;
+  primaryCta?: Cta;
+  secondaryLink?: Cta;
+  media?: "image" | "mirror" | "illustration" | "none";
+  image?: {
+    asset: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  alignBottom?: boolean;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
+};
+
+export type HomeHero = {
+  _type: "homeHero";
+  title: string;
+  lead?: string;
   cta?: Cta;
   image: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt: string;
+    alt?: string;
     _type: "image";
   };
-};
-
-export type Services = {
-  _type: "services";
-  title: string;
-  lead: string;
-  items: Array<{
-    label: string;
-    title: string;
-    description: string;
-    image: ObjectImage;
-    link: Link;
-    _key: string;
-  }>;
-  highlight?: Highlight;
-};
-
-export type Intro = {
-  _type: "intro";
-  image: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt: string;
-    _type: "image";
-  };
-  stampValue: string;
-  stampLabel: string;
-  eyebrow: string;
-  title: string;
-  titleHighlight?: string;
-  leads: Array<string>;
-  facts?: Array<{
-    value: string;
-    label: string;
-    _key: string;
-  }>;
-  link?: Cta;
-};
-
-export type Hero = {
-  _type: "hero";
-  slides: Array<{
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt: string;
-    _type: "image";
-    _key: string;
-  }>;
-  eyebrow: string;
-  title: string;
-  titleHighlight?: string;
-  lead: string;
-  primaryCta: Cta;
-  secondaryCta: Cta;
-  badgeLabel: string;
+  background?: "paper" | "stone" | "ink";
+  spacing?: "regular" | "large";
+  anchor?: string;
 };
 
 export type PageBuilder = Array<
   | ({
       _key: string;
-    } & Hero)
+    } & HomeHero)
   | ({
       _key: string;
     } & PageHero)
   | ({
       _key: string;
-    } & Intro)
-  | ({
-      _key: string;
-    } & Services)
-  | ({
-      _key: string;
     } & MediaText)
   | ({
       _key: string;
-    } & Benefits)
+    } & Tiles)
   | ({
       _key: string;
-    } & Steps)
+    } & Columns)
   | ({
       _key: string;
-    } & Faqs)
+    } & TextColumns)
+  | ({
+      _key: string;
+    } & Quote)
+  | ({
+      _key: string;
+    } & FeatureImage)
+  | ({
+      _key: string;
+    } & Callout)
+  | ({
+      _key: string;
+    } & Pricing)
+  | ({
+      _key: string;
+    } & Schedule)
+  | ({
+      _key: string;
+    } & Episodes)
+  | ({
+      _key: string;
+    } & Calendar)
   | ({
       _key: string;
     } & ContactForm)
-  | ({
-      _key: string;
-    } & CrossLinks)
-  | ({
-      _key: string;
-    } & CtaBand)
 >;
 
 export type FormField = {
@@ -299,6 +401,8 @@ export type FormField = {
     | "email"
     | "tel"
     | "url"
+    | "date"
+    | "time"
     | "textarea"
     | "select"
     | "radio"
@@ -308,6 +412,7 @@ export type FormField = {
   defaultValue?: string;
   width?: "full" | "half";
   isRequired?: boolean;
+  errorMessage?: string;
   placeholder?: string;
   helpText?: string;
   selectOptions?: Array<string>;
@@ -315,12 +420,20 @@ export type FormField = {
   checkboxOptions?: Array<string>;
 };
 
-export type PageReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "page";
-};
+export type RichText = Array<{
+  children?: Array<{
+    marks?: Array<string>;
+    text?: string;
+    _type: "span";
+    _key: string;
+  }>;
+  style?: "normal" | "intro" | "signature" | "h3" | "h4";
+  listItem?: "bullet";
+  markDefs?: null;
+  level?: number;
+  _type: "block";
+  _key: string;
+}>;
 
 export type Cta = {
   _type: "cta";
@@ -342,7 +455,7 @@ export type Seo = {
   title?: string;
   description?: string;
   ogImage?: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -365,7 +478,7 @@ export type FormGeneralSettings = {
   mailjetApiKey?: string;
   mailjetApiSecret?: string;
   mailLogo?: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -440,9 +553,10 @@ export type SiteInformation = {
   _updatedAt: string;
   _rev: string;
   name: string;
+  owner?: string;
   description?: string;
   logo?: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -460,6 +574,32 @@ export type SiteInformation = {
     _key: string;
   }>;
   badges?: Array<string>;
+  interfaceTexts?: {
+    skipToContent?: string;
+    mainMenu?: string;
+    footerMenu?: string;
+    menu?: string;
+    openMenu?: string;
+    closeMenu?: string;
+    audioPlayer?: string;
+    play?: string;
+    pause?: string;
+    duration?: string;
+    progress?: string;
+    of?: string;
+    back?: string;
+    forward?: string;
+    required?: string;
+    invalidEmail?: string;
+    checkFields?: string;
+    sending?: string;
+    sendFailed?: string;
+    recaptcha?: string;
+    stepCounter?: string;
+    notFoundTitle?: string;
+    notFoundText?: string;
+    notFoundButton?: string;
+  };
 };
 
 export type Footer = {
@@ -468,19 +608,8 @@ export type Footer = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  linkGroups?: Array<{
-    title: string;
-    links?: Array<{
-      label: string;
-      linkType: "internal" | "external";
-      internalLink?: PageReference;
-      href?: string;
-      _type: "footerLink";
-      _key: string;
-    }>;
-    _type: "linkGroup";
-    _key: string;
-  }>;
+  text?: string;
+  smallPrint?: string;
   copyright?: string;
 };
 
@@ -490,15 +619,7 @@ export type Navigation = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  navLeft?: Array<{
-    label: string;
-    linkType: "internal" | "external";
-    internalLink?: PageReference;
-    href?: string;
-    _type: "navLink";
-    _key: string;
-  }>;
-  navRight?: Array<{
+  links?: Array<{
     label: string;
     linkType: "internal" | "external";
     internalLink?: PageReference;
@@ -508,16 +629,26 @@ export type Navigation = {
   }>;
 };
 
-export type Faq = {
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
+export type Episode = {
   _id: string;
-  _type: "faq";
+  _type: "episode";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
   title: string;
-  answer: string;
-  link?: Cta;
-  afterLink?: string;
+  description?: string;
+  audio: {
+    asset: SanityFileAssetReference;
+    media?: unknown;
+    _type: "file";
+  };
 };
 
 export type Page = {
@@ -530,6 +661,7 @@ export type Page = {
   slug: Slug;
   seo?: Seo;
   content?: PageBuilder;
+  photoCredit?: string;
 };
 
 export type Slug = {
@@ -636,27 +768,31 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
-  | Highlight
-  | Aside
   | SanityImageAssetReference
-  | ObjectImage
-  | ItemsObjectImage
+  | Illustration
+  | Icon
+  | TextColumnIllustration
+  | OptionIcon
   | FormReference
   | ContactForm
-  | CtaBand
-  | CrossLinks
-  | FaqReference
-  | Faqs
-  | Steps
-  | Benefits
-  | PageHero
+  | Calendar
+  | EpisodeReference
+  | Episodes
+  | Schedule
+  | Pricing
+  | Callout
+  | FeatureImage
+  | Quote
+  | TextColumns
+  | Columns
+  | PageReference
+  | Tiles
   | MediaText
-  | Services
-  | Intro
-  | Hero
+  | PageHero
+  | HomeHero
   | PageBuilder
   | FormField
-  | PageReference
+  | RichText
   | Cta
   | Link
   | Seo
@@ -667,7 +803,8 @@ export type AllSanitySchemaTypes =
   | SiteInformation
   | Footer
   | Navigation
-  | Faq
+  | SanityFileAssetReference
+  | Episode
   | Page
   | Slug
   | SanityImagePaletteSwatch
@@ -681,7 +818,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../app/src/sanity/queries.ts
 // Variable: PAGE_QUERY
-// Query: *[_type == "page" && slug.current == $slug][0]{    _id,    title,    slug,    seo,    content[]{      ...,      primaryCta{  ...,  internalLink->{    "slug": slug.current  }},      secondaryCta{  ...,  internalLink->{    "slug": slug.current  }},      link{  ...,  internalLink->{    "slug": slug.current  }},      cta{  ...,  internalLink->{    "slug": slug.current  }},      highlight{        ...,        cta{  ...,  internalLink->{    "slug": slug.current  }}      },      items[]{        ...,        link{  ...,  internalLink->{    "slug": slug.current  }},        cta{  ...,  internalLink->{    "slug": slug.current  }}      },      // The form lives in its own document so several pages can share it, and      // the public half of the reCAPTCHA settings rides along — the secret      // stays server-side, in the submit route.      _type == "contactForm" => {        form->{  _id,  title,  showTitle,  mode,  fields[],  steps[]{    title,    fields[]  },  submitButtonText,  nextButtonText,  backButtonText,  successTitle,  successBody,  redirectAfterSubmit,  redirectLink{  ...,  internalLink->{    "slug": slug.current  }}},        // The panel's own CTA is nested, so the top-level link projections do        // not reach it — an internal link would arrive as a bare reference.        aside{          ...,          cta{  ...,  internalLink->{    "slug": slug.current  }}        },        "recaptcha": *[_type == "formGeneralSettings"][0]{          recaptchaEnabled,          recaptchaSiteKey        }      },      _type == "faqs" => {        ...,        faqs[]->{          ...,          link{  ...,  internalLink->{    "slug": slug.current  }}        },        link{  ...,  internalLink->{    "slug": slug.current  }}      }    }  }
+// Query: *[_type == "page" && slug.current == $slug][0]{    _id,    title,    slug,    seo,    content[]{      _type,      _key,      background,      spacing,      anchor,      _type == "homeHero" => {        title,        lead,        cta{  ...,  internalLink->{    "slug": slug.current  }},        image{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}      },      _type == "pageHero" => {        title,        intro,        italic,        attribution,        facts,        primaryCta{  ...,  internalLink->{    "slug": slug.current  }},        secondaryLink{  ...,  internalLink->{    "slug": slug.current  }},        media,        image{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},        alignBottom      },      _type == "mediaText" => {        title,        body,        facts,        factsNote,        episode->{  _id,  title,  description,  "audio": audio.asset->url},        cta{  ...,  internalLink->{    "slug": slug.current  }},        ctaStyle,        textLink{  ...,  internalLink->{    "slug": slug.current  }},        media,        image{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},        priceCard,        mediaLeft,        mediaSmall,        indent,        alignTop      },      _type == "tiles" => {        items[]{          _key,          label,          linkType,          href,          internalLink->{ "slug": slug.current },          illustration{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height}        }      },      _type == "columns" => {        title,        intro,        items[]{ _key, title, body, icon{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height} },        footnote      },      _type == "textColumns" => {        columns[]{ _key, title, body, illustration{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height} },        cta{  ...,  internalLink->{    "slug": slug.current  }}      },      _type == "quote" => { text },      _type == "featureImage" => { image{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height} },      _type == "callout" => { title, body, cta{  ...,  internalLink->{    "slug": slug.current  }}, size },      _type == "pricing" => {        title,        plans,        optionsLabel,        options[]{ _key, label, icon{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height} }      },      _type == "schedule" => { title, lead, cta{  ...,  internalLink->{    "slug": slug.current  }}, slots },      _type == "episodes" => { title, episodes[]->{  _id,  title,  description,  "audio": audio.asset->url}, footnote },      _type == "calendar" => { title, lead, embedUrl, placeholderTitle, placeholderText },      // The form lives in its own document so several pages can share it, and      // the public half of the reCAPTCHA settings rides along — the secret      // stays server-side, in the submit route.      _type == "contactForm" => {        illustration{  alt,  "src": asset->url,  "width": asset->metadata.dimensions.width,  "height": asset->metadata.dimensions.height},        title,        lead,        note,        links[]{  ...,  internalLink->{    "slug": slug.current  }},        showRequiredMarks,        wideForm,        form->{  _id,  title,  showTitle,  mode,  fields[],  steps[]{    title,    fields[]  },  submitButtonText,  nextButtonText,  backButtonText,  successTitle,  successBody,  redirectAfterSubmit,  redirectLink{  ...,  internalLink->{    "slug": slug.current  }}},        "recaptcha": *[_type == "formGeneralSettings"][0]{          recaptchaEnabled,          recaptchaSiteKey        }      }    }  }
 export type PAGE_QUERY_RESULT = {
   _id: string;
   title: string;
@@ -689,46 +826,84 @@ export type PAGE_QUERY_RESULT = {
   seo: Seo | null;
   content: Array<
     | {
+        _type: "calendar";
         _key: string;
-        _type: "benefits";
-        eyebrow: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         title: string;
-        lead: string;
-        image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-        };
-        items: Array<{
-          icon:
-            | "camera"
-            | "chart"
-            | "doc"
-            | "house"
-            | "person"
-            | "renovate"
-            | "scale";
-          title: string;
-          body: string;
-          _key: string;
-          link: null;
-          cta: null;
-        }>;
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        cta: null;
-        highlight: null;
+        lead: string | null;
+        embedUrl: string | null;
+        placeholderTitle: string | null;
+        placeholderText: string | null;
       }
     | {
+        _type: "callout";
         _key: string;
-        _type: "contactForm";
-        eyebrow: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         title: string;
-        lead: string;
+        body: string | null;
+        cta: {
+          _type: "cta";
+          label: string;
+          linkType: "external" | "internal";
+          internalLink: {
+            slug: string;
+          } | null;
+          href?: string;
+        } | null;
+        size: "large" | "small" | null;
+      }
+    | {
+        _type: "columns";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        title: string;
+        intro: string | null;
+        items: Array<{
+          _key: string;
+          title: string;
+          body: string | null;
+          icon: {
+            alt: string | null;
+            src: string;
+            width: number | null;
+            height: number | null;
+          } | null;
+        }> | null;
+        footnote: string | null;
+      }
+    | {
+        _type: "contactForm";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        illustration: {
+          alt: string | null;
+          src: string;
+          width: number | null;
+          height: number | null;
+        } | null;
+        title: string;
+        lead: string | null;
+        note: string | null;
+        links: Array<{
+          _key: string;
+          _type: "cta";
+          label: string;
+          linkType: "external" | "internal";
+          internalLink: {
+            slug: string;
+          } | null;
+          href?: string;
+        }> | null;
+        showRequiredMarks: boolean | null;
+        wideForm: boolean | null;
         form: {
           _id: string;
           title: string;
@@ -762,201 +937,48 @@ export type PAGE_QUERY_RESULT = {
             href?: string;
           } | null;
         };
-        note?: string;
-        aside: {
-          title?: string;
-          body?: string;
-          items?: Array<{
-            icon: "mail" | "phone" | "pin" | "whatsapp";
-            title: string;
-            subtitle?: string;
-            _type: "contactItem";
-            _key: string;
-          }>;
-          cta: {
-            _type: "cta";
-            label: string;
-            linkType: "external" | "internal";
-            internalLink: {
-              slug: string;
-            } | null;
-            href?: string;
-          } | null;
-        } | null;
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        cta: null;
-        highlight: null;
-        items: null;
         recaptcha: {
           recaptchaEnabled: boolean | null;
           recaptchaSiteKey: string | null;
         } | null;
       }
     | {
+        _type: "episodes";
         _key: string;
-        _type: "crossLinks";
-        items: Array<{
-          title: string;
-          body: string;
-          link: {
-            _type: "link";
-            linkType: "external" | "internal";
-            internalLink: {
-              slug: string;
-            } | null;
-            href?: string;
-          };
-          _key: string;
-          cta: null;
-        }>;
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        cta: null;
-        highlight: null;
-      }
-    | {
-        _key: string;
-        _type: "ctaBand";
-        image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-        };
-        eyebrow: string;
-        title: string;
-        body: string;
-        primaryCta: {
-          _type: "cta";
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-        } | null;
-        secondaryCta: {
-          _type: "cta";
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-        } | null;
-        link: null;
-        cta: null;
-        highlight: null;
-        items: null;
-      }
-    | {
-        _key: string;
-        _type: "faqs";
-        eyebrow: string;
-        title: string;
-        intro: string;
-        link: {
-          _type: "cta";
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-        } | null;
-        faqs: Array<{
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        title: string | null;
+        episodes: Array<{
           _id: string;
-          _type: "faq";
-          _createdAt: string;
-          _updatedAt: string;
-          _rev: string;
           title: string;
-          answer: string;
-          link: {
-            _type: "cta";
-            label: string;
-            linkType: "external" | "internal";
-            internalLink: {
-              slug: string;
-            } | null;
-            href?: string;
-          } | null;
-          afterLink?: string;
-        }>;
-        primaryCta: null;
-        secondaryCta: null;
-        cta: null;
-        highlight: null;
-        items: null;
+          description: string | null;
+          audio: string;
+        }> | null;
+        footnote: string | null;
       }
     | {
+        _type: "featureImage";
         _key: string;
-        _type: "hero";
-        slides: Array<{
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-          _key: string;
-        }>;
-        eyebrow: string;
-        title: string;
-        titleHighlight?: string;
-        lead: string;
-        primaryCta: {
-          _type: "cta";
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-        };
-        secondaryCta: {
-          _type: "cta";
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-        };
-        badgeLabel: string;
-        link: null;
-        cta: null;
-        highlight: null;
-        items: null;
-      }
-    | {
-        _key: string;
-        _type: "intro";
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
+          alt: string | null;
+          src: string;
+          width: number | null;
+          height: number | null;
         };
-        stampValue: string;
-        stampLabel: string;
-        eyebrow: string;
+      }
+    | {
+        _type: "homeHero";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         title: string;
-        titleHighlight?: string;
-        leads: Array<string>;
-        facts?: Array<{
-          value: string;
-          label: string;
-          _key: string;
-        }>;
-        link: {
+        lead: string | null;
+        cta: {
           _type: "cta";
           label: string;
           linkType: "external" | "internal";
@@ -965,18 +987,34 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
-        primaryCta: null;
-        secondaryCta: null;
-        cta: null;
-        highlight: null;
-        items: null;
+        image: {
+          alt: string | null;
+          src: string;
+          width: number | null;
+          height: number | null;
+        };
       }
     | {
-        _key: string;
         _type: "mediaText";
-        eyebrow: string;
-        title: string;
-        paragraphs: Array<string>;
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        title: string | null;
+        body: RichText | null;
+        facts: Array<{
+          label: string;
+          value: string;
+          _type: "fact";
+          _key: string;
+        }> | null;
+        factsNote: string | null;
+        episode: {
+          _id: string;
+          title: string;
+          description: string | null;
+          audio: string;
+        } | null;
         cta: {
           _type: "cta";
           label: string;
@@ -986,36 +1024,59 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
+        ctaStyle: "outline" | "solid" | null;
+        textLink: {
+          _type: "cta";
+          label: string;
+          linkType: "external" | "internal";
+          internalLink: {
+            slug: string;
+          } | null;
+          href?: string;
+        } | null;
+        media:
+          | "illustration"
+          | "illustrationCard"
+          | "image"
+          | "mirror"
+          | "none"
+          | "priceCard"
+          | null;
         image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-        };
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        highlight: null;
-        items: null;
+          alt: string | null;
+          src: string;
+          width: number | null;
+          height: number | null;
+        } | null;
+        priceCard: Array<{
+          label: string;
+          value: string;
+          isPrice?: boolean;
+          note?: string;
+          _type: "priceRow";
+          _key: string;
+        }> | null;
+        mediaLeft: boolean | null;
+        mediaSmall: boolean | null;
+        indent: boolean | null;
+        alignTop: boolean | null;
       }
     | {
-        _key: string;
         _type: "pageHero";
-        image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-        };
-        breadcrumbLabel?: string;
-        eyebrow: string;
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         title: string;
-        titleHighlight?: string;
-        lead: string;
+        intro: string | null;
+        italic: boolean | null;
+        attribution: string | null;
+        facts: Array<{
+          label: string;
+          value: string;
+          _type: "fact";
+          _key: string;
+        }> | null;
         primaryCta: {
           _type: "cta";
           label: string;
@@ -1025,7 +1086,7 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
-        secondaryCta: {
+        secondaryLink: {
           _type: "cta";
           label: string;
           linkType: "external" | "internal";
@@ -1034,57 +1095,58 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
-        link: null;
-        cta: null;
-        highlight: null;
-        items: null;
-      }
-    | {
-        _key: string;
-        _type: "services";
-        title: string;
-        lead: string;
-        items: Array<{
-          label: string;
-          title: string;
-          description: string;
-          image: ObjectImage;
-          link: {
-            _type: "link";
-            linkType: "external" | "internal";
-            internalLink: {
-              slug: string;
-            } | null;
-            href?: string;
-          };
-          _key: string;
-          cta: null;
-        }>;
-        highlight: {
-          badge?: string;
-          title?: string;
-          body?: string;
-          cta: {
-            _type: "cta";
-            label: string;
-            linkType: "external" | "internal";
-            internalLink: {
-              slug: string;
-            } | null;
-            href?: string;
-          } | null;
+        media: "illustration" | "image" | "mirror" | "none" | null;
+        image: {
+          alt: string | null;
+          src: string;
+          width: number | null;
+          height: number | null;
         } | null;
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        cta: null;
+        alignBottom: boolean | null;
       }
     | {
+        _type: "pricing";
         _key: string;
-        _type: "steps";
-        eyebrow: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
         title: string;
-        lead: string;
+        plans: Array<{
+          title: string;
+          subtitle?: string;
+          price: string;
+          body?: string;
+          _type: "plan";
+          _key: string;
+        }> | null;
+        optionsLabel: string | null;
+        options: Array<{
+          _key: string;
+          label: string;
+          icon: {
+            alt: string | null;
+            src: string;
+            width: number | null;
+            height: number | null;
+          } | null;
+        }> | null;
+      }
+    | {
+        _type: "quote";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        text: string;
+      }
+    | {
+        _type: "schedule";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        title: string;
+        lead: string | null;
         cta: {
           _type: "cta";
           label: string;
@@ -1094,19 +1156,62 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
-        items: Array<{
-          number: string;
+        slots: Array<{
+          time: string;
           title: string;
-          body: string;
-          image: ItemsObjectImage;
+          description?: string;
+          _type: "slot";
           _key: string;
-          link: null;
-          cta: null;
-        }>;
-        primaryCta: null;
-        secondaryCta: null;
-        link: null;
-        highlight: null;
+        }> | null;
+      }
+    | {
+        _type: "textColumns";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        columns: Array<{
+          _key: string;
+          title: string | null;
+          body: RichText | null;
+          illustration: {
+            alt: string | null;
+            src: string;
+            width: number | null;
+            height: number | null;
+          } | null;
+        }> | null;
+        cta: {
+          _type: "cta";
+          label: string;
+          linkType: "external" | "internal";
+          internalLink: {
+            slug: string;
+          } | null;
+          href?: string;
+        } | null;
+      }
+    | {
+        _type: "tiles";
+        _key: string;
+        background: "ink" | "paper" | "stone" | null;
+        spacing: "large" | "regular" | null;
+        anchor: string | null;
+        items: Array<{
+          _key: string;
+          label: string;
+          linkType: "external" | "internal";
+          href: string | null;
+          internalLink: {
+            slug: string;
+          } | null;
+          illustration: {
+            alt: string | null;
+            src: string;
+            width: number | null;
+            height: number | null;
+          };
+        }> | null;
       }
   > | null;
 } | null;
@@ -1121,24 +1226,13 @@ export type PAGE_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../app/src/sanity/queries.ts
 // Variable: NAVIGATION_QUERY
-// Query: *[_id == "navigation"][0]{    navLeft[]{  ...,  internalLink->{    "slug": slug.current  }},    navRight[]{  ...,  internalLink->{    "slug": slug.current  }}  }
+// Query: *[_id == "navigation"][0]{    links[]{  ...,  internalLink->{    "slug": slug.current  }}  }
 export type NAVIGATION_QUERY_RESULT =
   | {
-      navLeft: null;
-      navRight: null;
+      links: null;
     }
   | {
-      navLeft: Array<{
-        label: string;
-        linkType: "external" | "internal";
-        internalLink: {
-          slug: string;
-        } | null;
-        href?: string;
-        _type: "navLink";
-        _key: string;
-      }> | null;
-      navRight: Array<{
+      links: Array<{
         label: string;
         linkType: "external" | "internal";
         internalLink: {
@@ -1152,11 +1246,20 @@ export type NAVIGATION_QUERY_RESULT =
   | null;
 
 // Source: ../app/src/sanity/queries.ts
+// Variable: PHOTO_CREDITS_QUERY
+// Query: *[_type == "page" && defined(photoCredit) && defined(slug.current)]{    "slug": slug.current,    photoCredit  }
+export type PHOTO_CREDITS_QUERY_RESULT = Array<{
+  slug: string;
+  photoCredit: string;
+}>;
+
+// Source: ../app/src/sanity/queries.ts
 // Variable: SITE_INFORMATION_QUERY
-// Query: *[_id == "siteInformation"][0]{    name,    description,    language,    phone,    email,    address,    addressCountry,    badges,    // Only the URLs: they become sameAs in the structured data.    "socialLinks": socialLinks[].url,    "logoUrl": logo.asset->url  }
+// Query: *[_id == "siteInformation"][0]{    name,    owner,    description,    language,    phone,    email,    address,    addressCountry,    badges,    // Only the URLs: they become sameAs in the structured data.    "socialLinks": socialLinks[].url,    "logoUrl": logo.asset->url,    interfaceTexts  }
 export type SITE_INFORMATION_QUERY_RESULT =
   | {
       name: null;
+      owner: null;
       description: null;
       language: null;
       phone: null;
@@ -1166,9 +1269,11 @@ export type SITE_INFORMATION_QUERY_RESULT =
       badges: null;
       socialLinks: null;
       logoUrl: null;
+      interfaceTexts: null;
     }
   | {
       name: null;
+      owner: null;
       description: string | null;
       language: null;
       phone: null;
@@ -1178,9 +1283,11 @@ export type SITE_INFORMATION_QUERY_RESULT =
       badges: null;
       socialLinks: null;
       logoUrl: null;
+      interfaceTexts: null;
     }
   | {
       name: string;
+      owner: string | null;
       description: string | null;
       language: string | null;
       phone: string | null;
@@ -1190,31 +1297,47 @@ export type SITE_INFORMATION_QUERY_RESULT =
       badges: Array<string> | null;
       socialLinks: Array<string> | null;
       logoUrl: string | null;
+      interfaceTexts: {
+        skipToContent?: string;
+        mainMenu?: string;
+        footerMenu?: string;
+        menu?: string;
+        openMenu?: string;
+        closeMenu?: string;
+        audioPlayer?: string;
+        play?: string;
+        pause?: string;
+        duration?: string;
+        progress?: string;
+        of?: string;
+        back?: string;
+        forward?: string;
+        required?: string;
+        invalidEmail?: string;
+        checkFields?: string;
+        sending?: string;
+        sendFailed?: string;
+        recaptcha?: string;
+        stepCounter?: string;
+        notFoundTitle?: string;
+        notFoundText?: string;
+        notFoundButton?: string;
+      } | null;
     }
   | null;
 
 // Source: ../app/src/sanity/queries.ts
 // Variable: FOOTER_QUERY
-// Query: *[_id == "footer"][0]{    linkGroups[]{      title,      links[]{  ...,  internalLink->{    "slug": slug.current  }}    },    copyright  }
+// Query: *[_id == "footer"][0]{    text,    smallPrint,    copyright  }
 export type FOOTER_QUERY_RESULT =
   | {
-      linkGroups: null;
+      text: null;
+      smallPrint: null;
       copyright: null;
     }
   | {
-      linkGroups: Array<{
-        title: string;
-        links: Array<{
-          label: string;
-          linkType: "external" | "internal";
-          internalLink: {
-            slug: string;
-          } | null;
-          href?: string;
-          _type: "footerLink";
-          _key: string;
-        }> | null;
-      }> | null;
+      text: string | null;
+      smallPrint: string | null;
       copyright: string | null;
     }
   | null;
@@ -1236,6 +1359,7 @@ export type FORM_QUERY_RESULT = {
     name: string;
     type:
       | "checkbox"
+      | "date"
       | "email"
       | "file"
       | "hidden"
@@ -1244,6 +1368,7 @@ export type FORM_QUERY_RESULT = {
       | "tel"
       | "text"
       | "textarea"
+      | "time"
       | "url";
     isRequired: boolean | null;
   }> | null;
@@ -1257,7 +1382,7 @@ export type FORM_SETTINGS_QUERY_RESULT = {
   fromEmail: string | null;
   fromName: string | null;
   mailLogo: {
-    asset?: SanityImageAssetReference;
+    asset: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
@@ -1277,11 +1402,12 @@ export type FORM_SETTINGS_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "page" && slug.current == $slug][0]{\n    _id,\n    title,\n    slug,\n    seo,\n    content[]{\n      ...,\n      primaryCta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n      secondaryCta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n      link{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n      cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n      highlight{\n        ...,\n        cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n      },\n      items[]{\n        ...,\n        link{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n      },\n      // The form lives in its own document so several pages can share it, and\n      // the public half of the reCAPTCHA settings rides along \u2014 the secret\n      // stays server-side, in the submit route.\n      _type == "contactForm" => {\n        form->{\n  _id,\n  title,\n  showTitle,\n  mode,\n  fields[],\n  steps[]{\n    title,\n    fields[]\n  },\n  submitButtonText,\n  nextButtonText,\n  backButtonText,\n  successTitle,\n  successBody,\n  redirectAfterSubmit,\n  redirectLink{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n},\n        // The panel\'s own CTA is nested, so the top-level link projections do\n        // not reach it \u2014 an internal link would arrive as a bare reference.\n        aside{\n          ...,\n          cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n        },\n        "recaptcha": *[_type == "formGeneralSettings"][0]{\n          recaptchaEnabled,\n          recaptchaSiteKey\n        }\n      },\n      _type == "faqs" => {\n        ...,\n        faqs[]->{\n          ...,\n          link{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n        },\n        link{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n      }\n    }\n  }\n': PAGE_QUERY_RESULT;
+    '\n  *[_type == "page" && slug.current == $slug][0]{\n    _id,\n    title,\n    slug,\n    seo,\n    content[]{\n      _type,\n      _key,\n      background,\n      spacing,\n      anchor,\n      _type == "homeHero" => {\n        title,\n        lead,\n        cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        image{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n      },\n      _type == "pageHero" => {\n        title,\n        intro,\n        italic,\n        attribution,\n        facts,\n        primaryCta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        secondaryLink{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        media,\n        image{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n        alignBottom\n      },\n      _type == "mediaText" => {\n        title,\n        body,\n        facts,\n        factsNote,\n        episode->{\n  _id,\n  title,\n  description,\n  "audio": audio.asset->url\n},\n        cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        ctaStyle,\n        textLink{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        media,\n        image{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n        priceCard,\n        mediaLeft,\n        mediaSmall,\n        indent,\n        alignTop\n      },\n      _type == "tiles" => {\n        items[]{\n          _key,\n          label,\n          linkType,\n          href,\n          internalLink->{ "slug": slug.current },\n          illustration{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n}\n        }\n      },\n      _type == "columns" => {\n        title,\n        intro,\n        items[]{ _key, title, body, icon{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n} },\n        footnote\n      },\n      _type == "textColumns" => {\n        columns[]{ _key, title, body, illustration{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n} },\n        cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n      },\n      _type == "quote" => { text },\n      _type == "featureImage" => { image{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n} },\n      _type == "callout" => { title, body, cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}, size },\n      _type == "pricing" => {\n        title,\n        plans,\n        optionsLabel,\n        options[]{ _key, label, icon{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n} }\n      },\n      _type == "schedule" => { title, lead, cta{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}, slots },\n      _type == "episodes" => { title, episodes[]->{\n  _id,\n  title,\n  description,\n  "audio": audio.asset->url\n}, footnote },\n      _type == "calendar" => { title, lead, embedUrl, placeholderTitle, placeholderText },\n      // The form lives in its own document so several pages can share it, and\n      // the public half of the reCAPTCHA settings rides along \u2014 the secret\n      // stays server-side, in the submit route.\n      _type == "contactForm" => {\n        illustration{\n  alt,\n  "src": asset->url,\n  "width": asset->metadata.dimensions.width,\n  "height": asset->metadata.dimensions.height\n},\n        title,\n        lead,\n        note,\n        links[]{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n        showRequiredMarks,\n        wideForm,\n        form->{\n  _id,\n  title,\n  showTitle,\n  mode,\n  fields[],\n  steps[]{\n    title,\n    fields[]\n  },\n  submitButtonText,\n  nextButtonText,\n  backButtonText,\n  successTitle,\n  successBody,\n  redirectAfterSubmit,\n  redirectLink{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n},\n        "recaptcha": *[_type == "formGeneralSettings"][0]{\n          recaptchaEnabled,\n          recaptchaSiteKey\n        }\n      }\n    }\n  }\n': PAGE_QUERY_RESULT;
     '\n  *[_type == "page" && defined(slug.current)]{\n    "slug": slug.current,\n    _updatedAt\n  }\n': PAGE_SLUGS_QUERY_RESULT;
-    '\n  *[_id == "navigation"][0]{\n    navLeft[]{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n},\n    navRight[]{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n  }\n': NAVIGATION_QUERY_RESULT;
-    '\n  *[_id == "siteInformation"][0]{\n    name,\n    description,\n    language,\n    phone,\n    email,\n    address,\n    addressCountry,\n    badges,\n    // Only the URLs: they become sameAs in the structured data.\n    "socialLinks": socialLinks[].url,\n    "logoUrl": logo.asset->url\n  }\n': SITE_INFORMATION_QUERY_RESULT;
-    '\n  *[_id == "footer"][0]{\n    linkGroups[]{\n      title,\n      links[]{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n    },\n    copyright\n  }\n': FOOTER_QUERY_RESULT;
+    '\n  *[_id == "navigation"][0]{\n    links[]{\n  ...,\n  internalLink->{\n    "slug": slug.current\n  }\n}\n  }\n': NAVIGATION_QUERY_RESULT;
+    '\n  *[_type == "page" && defined(photoCredit) && defined(slug.current)]{\n    "slug": slug.current,\n    photoCredit\n  }\n': PHOTO_CREDITS_QUERY_RESULT;
+    '\n  *[_id == "siteInformation"][0]{\n    name,\n    owner,\n    description,\n    language,\n    phone,\n    email,\n    address,\n    addressCountry,\n    badges,\n    // Only the URLs: they become sameAs in the structured data.\n    "socialLinks": socialLinks[].url,\n    "logoUrl": logo.asset->url,\n    interfaceTexts\n  }\n': SITE_INFORMATION_QUERY_RESULT;
+    '\n  *[_id == "footer"][0]{\n    text,\n    smallPrint,\n    copyright\n  }\n': FOOTER_QUERY_RESULT;
     '\n  *[_id == $formId && _type == "form"][0]{\n    _id,\n    title,\n    mailRecipients,\n    mailSubject,\n    mailMessage,\n    sendCopyToSubmitter,\n    copySubject,\n    copyMessage,\n    "fields": select(\n      mode == "steps" => steps[].fields[]{label, name, type, isRequired},\n      fields[]{label, name, type, isRequired}\n    )\n  }\n': FORM_QUERY_RESULT;
     '\n  *[_type == "formGeneralSettings"][0]{\n    adminEmail,\n    fromEmail,\n    fromName,\n    mailLogo,\n    primaryColor,\n    textColor,\n    mailjetApiKey,\n    mailjetApiSecret,\n    confirmationSubject,\n    confirmationMessage,\n    recaptchaEnabled,\n    recaptchaSecretKey\n  }\n': FORM_SETTINGS_QUERY_RESULT;
   }

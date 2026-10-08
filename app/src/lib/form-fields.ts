@@ -9,6 +9,8 @@ export type FormFieldType =
   | 'email'
   | 'tel'
   | 'url'
+  | 'date'
+  | 'time'
   | 'textarea'
   | 'select'
   | 'radio'
@@ -23,6 +25,8 @@ export type FormFieldDefinition = {
   name: string;
   type: FormFieldType;
   isRequired?: boolean;
+  /** Shown when this required field is left empty; else the general message. */
+  errorMessage?: string;
   width?: 'full' | 'half';
   placeholder?: string;
   helpText?: string;
@@ -107,6 +111,24 @@ export function fillTokens(value: string, context: Record<string, string> = {}) 
     /\{\{\s*([a-zA-Z0-9_-]+)\s*\}\}/g,
     (_, token: string) => context[token] ?? '',
   );
+}
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * The message a field should show for what was entered, or '' when it is
+ * fine. `values` holds every value submitted under the field's name — several
+ * for checkboxes, none for an empty radio group.
+ */
+export function fieldError(
+  field: FormFieldDefinition,
+  values: string[],
+  messages: { required: string; invalidEmail: string },
+): string {
+  const filled = values.map((value) => value.trim()).filter(Boolean);
+  if (field.isRequired && filled.length === 0) return field.errorMessage || messages.required;
+  if (field.type === 'email' && filled[0] && !EMAIL.test(filled[0])) return messages.invalidEmail;
+  return '';
 }
 
 /**

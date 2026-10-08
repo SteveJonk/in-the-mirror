@@ -1,10 +1,10 @@
-import Image from '@/components/ui/Image';
+import { SanityImage, type CmsImage } from '@/components/ui/SanityImage';
 
 /**
  * The mirror: an arch that holds a night sky, with an offset outline behind
- * it. The drawn crescent shows while the photo loads, or if it never does.
+ * it. The drawn crescent shows while the photo loads, or if there is none.
  */
-export function MirrorArch({ priority = false }: { priority?: boolean }) {
+export function MirrorArch({ image, priority = false }: { image: CmsImage; priority?: boolean }) {
   return (
     <div className='relative mx-auto w-full max-w-[25rem]'>
       <div
@@ -13,8 +13,8 @@ export function MirrorArch({ priority = false }: { priority?: boolean }) {
       />
       <div
         className='relative aspect-[3/4.3] overflow-hidden rounded-t-full bg-inverse'
-        role='img'
-        aria-label='Een smalle maansikkel in een nachtelijke hemel boven donkere boomtoppen'
+        role={image?.alt ? 'img' : undefined}
+        aria-label={image?.alt ?? undefined}
       >
         <svg
           viewBox='0 0 400 560'
@@ -38,11 +38,11 @@ export function MirrorArch({ priority = false }: { priority?: boolean }) {
           <circle cx='330' cy='250' r='1.4' />
           <circle cx='180' cy='96' r='1.6' />
         </svg>
-        <Image
-          src='https://images.unsplash.com/photo-1634286415662-cdba58523598?auto=format&fit=crop&q=75&w=1200'
+        <SanityImage
+          image={image}
+          alt=''
           fill
           sizes='(min-width: 768px) 400px, 90vw'
-          alt=''
           priority={priority}
           className='object-cover'
         />

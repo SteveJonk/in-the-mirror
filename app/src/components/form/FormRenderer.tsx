@@ -2,11 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { useRef, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
-import { flushSync } from 'react-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useInterfaceTexts } from '@/components/layout/InterfaceTexts';
+import { ctaClass } from '@/components/ui/Cta';
+import { Reveal } from '@/components/ui/Reveal';
 import { cn } from '@/lib/cn';
-import { fillTokens, toFieldRows, toSteps, type FormDefinition } from '@/lib/form-fields';
-import { FormField, type FormFieldVariant } from './fields';
+import {
+  fieldError,
+  fillTokens,
+  toFieldRows,
+  toSteps,
+  type FormDefinition,
+  type FormFieldDefinition,
+} from '@/lib/form-fields';
+import { FormField } from './fields';
 
 /** Public half of the reCAPTCHA settings — the secret stays server-side. */
 export type FormRecaptcha = {
@@ -16,164 +25,119 @@ export type FormRecaptcha = {
 
 export type FormRendererProps = {
   form: FormDefinition;
-  /** Heading above the form. Hidden once the form has been sent. */
-  title?: string;
-  lead?: string;
-  /** Small print under the form, shown in every state. */
-  footer?: ReactNode;
   recaptcha?: FormRecaptcha;
-  variant?: FormFieldVariant;
   /**
    * Values the surrounding page knows and the visitor does not type — which
    * page the form was submitted from, say. A hidden field picks them up by
    * `{{token}}`.
    */
   context?: Record<string, string>;
+  /** Mark required fields with an asterisk. */
+  showRequiredMarks?: boolean;
+  /** Reveal each row on scroll, as part of the surrounding block's cascade. */
+  reveal?: boolean;
 };
 
-type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-
-const BUTTON_BASE = cn(
-  'inline-flex items-center justify-center gap-2.5 rounded-pill border border-transparent',
-  'bg-brand text-btn font-semibold text-brand-fg',
-  'transition-[background,transform] duration-300 ease-brand hover:-translate-y-0.5 hover:bg-brand-hover',
-  'focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent-strong',
-  'cursor-pointer disabled:pointer-events-none disabled:opacity-60',
-);
-
-/**
- * Per-variant chrome. `stacked` is the page-width form (inline button, panel
- * confirmation), `compact` a narrow card (full-width button, centred
- * confirmation with a check mark).
- */
-const VARIANTS = {
-  stacked: {
-    button: cn(BUTTON_BASE, 'px-[34px] py-[17px] whitespace-nowrap max-sm:w-full'),
-    title: 'mb-6 text-[1.4rem]',
-    lead: 'mb-6 leading-[1.7] text-muted',
-    rowGap: 'gap-5',
-  },
-  compact: {
-    button: cn(BUTTON_BASE, 'w-full px-[28px] py-[17px]'),
-    title: 'mb-2 text-[1.55rem]',
-    lead: 'text-[0.92rem] leading-[1.6] text-muted',
-    rowGap: 'gap-3.5',
-  },
-} as const satisfies Record<FormFieldVariant, Record<string, string>>;
-
-function IconArrowRight() {
-  return (
-    <svg width='15' height='15' viewBox='0 0 14 14' fill='none' aria-hidden='true'>
-      <path d='M2 7h10M8.2 3.2 12 7l-3.8 3.8' stroke='currentColor' strokeWidth='1.4' />
-    </svg>
-  );
-}
-
-function SuccessPanel({
-  variant,
-  title,
-  body,
-}: {
-  variant: FormFieldVariant;
-  title?: string;
-  body?: string;
-}) {
-  if (variant === 'stacked') {
-    return (
-      <div className='rounded border-l-[3px] border-accent-strong bg-surface px-10 py-11 max-sm:px-6 max-sm:py-8'>
-        {title ? <h3 className='mb-2.5 text-[1.6rem]'>{title}</h3> : null}
-        {body ? <p className='leading-[1.7] text-muted'>{body}</p> : null}
-      </div>
-    );
-  }
-
-  return (
-    <div className='py-3 text-center'>
-      <div className='mx-auto mb-4 grid size-[58px] place-items-center rounded-full bg-accent text-accent-strong'>
-        <svg width='30' height='30' viewBox='0 0 24 24' fill='none' aria-hidden='true'>
-          <path d='M4 12.5 9.5 18 20 7' stroke='currentColor' strokeWidth='2' />
-        </svg>
-      </div>
-      {title ? <h3 className='mb-2.5 text-[1.6rem]'>{title}</h3> : null}
-      {body ? (
-        <p className='mx-auto max-w-[34ch] text-[0.95rem] leading-[1.7] text-muted'>{body}</p>
-      ) : null}
-    </div>
-  );
+/** What the visitor entered for one field, read from the form itself. */
+function valuesOf(form: HTMLFormElement, name: string): string[] {
+  return Array.from(form.elements)
+    .filter(
+      (el): el is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement =>
+        'name' in el && (el as HTMLInputElement).name === name,
+    )
+    .filter((el) => !(el instanceof HTMLInputElement) || !['checkbox', 'radio'].includes(el.type) || el.checked)
+    .map((el) => el.value);
 }
 
 /**
  * Renders any Sanity `form` — one page of fields or several steps — and posts
  * the whole thing to /api/submit-form in one request. A form with a redirect
  * sends the visitor to that page afterwards instead of showing its
- * confirmation panel.
+ * confirmation.
  *
- * Every step stays mounted (hidden steps keep their values in the FormData),
- * which is why the form carries `noValidate`: the browser would otherwise
- * refuse to submit over a required field it cannot focus. Validation is driven
- * per step instead — `reportValidity()` still shows the native message.
+ * Every step stays mounted (hidden steps keep their values in the FormData).
+ * Validation is the design's own: a message under each field that needs
+ * attention, shown on submit (or "next"), and on leaving a field once
+ * something was typed; it clears as soon as the field is fixed.
  */
 export function FormRenderer({
   form,
-  title,
-  lead,
-  footer,
   recaptcha,
-  variant = 'compact',
   context,
+  showRequiredMarks = true,
+  reveal = false,
 }: FormRendererProps) {
+  const ui = useInterfaceTexts();
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [step, setStep] = useState(0);
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [status, setStatus] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const styles = VARIANTS[variant];
   const steps = toSteps(form);
   const total = steps.length;
   const isLastStep = step >= total - 1;
   const usesRecaptcha = Boolean(recaptcha?.enabled && recaptcha.siteKey);
+  const fields = steps.flatMap((formStep) => formStep.fields);
+  const messages = { required: ui.required, invalidEmail: ui.invalidEmail };
 
-  function controlsOf(index: number): Control[] {
-    const container = stepRefs.current[index];
-    if (!container) return [];
-    return Array.from(container.querySelectorAll<Control>('input, select, textarea'));
+  const errorFor = (field: FormFieldDefinition) =>
+    formRef.current ? fieldError(field, valuesOf(formRef.current, field.name), messages) : '';
+
+  const setError = (name: string, error: string) =>
+    setErrors((prev) => ((prev[name] ?? '') === error ? prev : { ...prev, [name]: error }));
+
+  /** Checks one step; shows its messages and returns the first field that needs attention. */
+  function checkStep(index: number): FormFieldDefinition | undefined {
+    const found = steps[index].fields.map((field) => [field, errorFor(field)] as const);
+    setErrors((prev) => ({ ...prev, ...Object.fromEntries(found.map(([field, error]) => [field.name, error])) }));
+    return found.find(([, error]) => error)?.[0];
   }
 
-  /** Silent check — safe to run on a step the user cannot see. */
-  function stepIsValid(index: number) {
-    return controlsOf(index).every((control) => control.checkValidity());
-  }
-
-  /** Focuses and explains the first problem on a step the user *can* see. */
-  function reportStep(index: number) {
-    const invalid = controlsOf(index).find((control) => !control.checkValidity());
-    if (!invalid) return true;
-    invalid.reportValidity();
-    return false;
+  function focusField(field: FormFieldDefinition) {
+    formRef.current?.querySelector<HTMLElement>(`[name="${CSS.escape(field.name)}"]`)?.focus();
   }
 
   function goNext(event: MouseEvent<HTMLButtonElement>) {
     // This very button becomes the submit button on the last step. Its
     // activation behaviour is read after this handler runs, so without this the
-    // step that setStep() just revealed is submitted by the same click — and
-    // the visitor lands on step 2 staring at a native "fill in this field".
+    // step that setStep() just revealed is submitted by the same click.
     event.preventDefault();
-    if (reportStep(step)) setStep((current) => Math.min(current + 1, total - 1));
+    const invalid = checkStep(step);
+    if (invalid) {
+      setStatus(ui.checkFields);
+      focusField(invalid);
+      return;
+    }
+    setStatus('');
+    setStep((current) => Math.min(current + 1, total - 1));
+  }
+
+  /** Live feedback: clear a message once fixed, show one on leaving a field with input. */
+  function onFieldEvent(target: EventTarget, leaving: boolean) {
+    const name = (target as HTMLInputElement).name;
+    const field = fields.find((item) => item.name === name);
+    if (!field) return;
+    const error = errorFor(field);
+    if (errors[name] && !error) setError(name, '');
+    else if (leaving && error && (target as HTMLInputElement).value !== '') setError(name, error);
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    // Should only ever be the current step, since you cannot walk past an
-    // invalid one — but an earlier step is still recoverable: show it first,
-    // because reportValidity() cannot open a bubble on a hidden field.
-    const firstInvalid = steps.findIndex((_, index) => !stepIsValid(index));
-    if (firstInvalid !== -1) {
-      if (firstInvalid !== step) flushSync(() => setStep(firstInvalid));
-      reportStep(firstInvalid);
-      return;
+    for (let index = 0; index < total; index++) {
+      const invalid = checkStep(index);
+      if (invalid) {
+        setStep(index);
+        setStatus(ui.checkFields);
+        // The step may only now become visible; focus once it has rendered.
+        requestAnimationFrame(() => focusField(invalid));
+        return;
+      }
     }
 
     const body = new FormData(event.currentTarget);
@@ -182,152 +146,155 @@ export function FormRenderer({
     if (usesRecaptcha) {
       const token = recaptchaRef.current?.getValue();
       if (!token) {
-        setError('Please confirm you are not a robot.');
+        setStatus(ui.recaptcha);
         return;
       }
       body.set('recaptchaToken', token);
     }
 
-    setStatus('sending');
-    setError(null);
+    setSending(true);
+    setStatus('');
     try {
       const response = await fetch('/api/submit-form', { method: 'POST', body });
-      const result = (await response.json()) as { success?: boolean; message?: string };
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Sending failed.');
-      }
+      const result = (await response.json()) as { success?: boolean };
+      if (!response.ok || !result.success) throw new Error('Sending failed');
       if (form.redirect) {
-        // Stay on 'sending' so the button keeps its disabled state until the
-        // new page takes over — a second submit would mail the same answers.
+        // Stay "sending" so the button keeps its disabled state until the new
+        // page takes over — a second submit would mail the same answers.
         if (form.redirect.internal) router.push(form.redirect.href);
         else window.location.assign(form.redirect.href);
         return;
       }
-      setStatus('done');
-    } catch (submitError) {
+      setDone(true);
+    } catch {
       // A token is single-use: clear it so a retry gets a fresh one.
       recaptchaRef.current?.reset();
-      setStatus('idle');
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : 'Sending failed. Please try again later.',
-      );
+      setSending(false);
+      setStatus(ui.sendFailed);
     }
   }
 
-  if (status === 'done') {
-    return <SuccessPanel variant={variant} title={form.successTitle} body={form.successBody} />;
+  if (done) {
+    return (
+      <div role='status'>
+        {form.successTitle && <p className='font-display text-h3 text-balance'>{form.successTitle}</p>}
+        {form.successBody && <p className='mt-5 max-w-[34rem]'>{form.successBody}</p>}
+      </div>
+    );
   }
 
+  let slot = 0;
+  const row = (node: ReactNode, key: string, className?: string) =>
+    reveal ? (
+      <Reveal key={key} delay={slot++} className={className}>
+        {node}
+      </Reveal>
+    ) : (
+      <div key={key} className={className}>
+        {node}
+      </div>
+    );
+
+  const fieldProps = (field: FormFieldDefinition) => ({
+    field,
+    idPrefix: form.id,
+    error: errors[field.name],
+    star: showRequiredMarks,
+  });
+
   return (
-    <>
-      {title || lead ? (
-        <div className={variant === 'compact' ? 'mb-6' : undefined}>
-          {title ? <h2 className={styles.title}>{title}</h2> : null}
-          {lead ? <p className={styles.lead}>{lead}</p> : null}
-        </div>
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      onInput={(event) => onFieldEvent(event.target, false)}
+      onChange={(event) => onFieldEvent(event.target, false)}
+      onBlur={(event) => onFieldEvent(event.target, true)}
+      noValidate
+    >
+      {form.showTitle && form.title ? (
+        <h3 className='mb-9 font-display text-h3 text-balance'>{form.title}</h3>
       ) : null}
 
       {total > 1 ? (
-        <div className='mb-[26px] flex items-center gap-3.5'>
-          <div className='h-1 flex-1 overflow-hidden rounded-pill bg-fg/13'>
+        <div className='mb-9 flex items-center gap-4'>
+          <div className='h-0.5 flex-1 bg-fg/20'>
             <span
-              className='block h-full rounded-pill bg-accent-strong transition-[width] duration-[450ms] ease-brand'
+              className='block h-full bg-fg transition-[width] duration-500 ease-soft'
               style={{ width: `${((step + 1) / total) * 100}%` }}
             />
           </div>
-          <span className='text-[0.74rem] font-semibold tracking-[0.11em] whitespace-nowrap text-subtle uppercase'>
-            Step {step + 1} of {total}
+          <span className='text-[0.95rem] whitespace-nowrap text-muted'>
+            {ui.stepCounter.replace('{current}', String(step + 1)).replace('{total}', String(total))}
           </span>
         </div>
       ) : null}
 
-      <form onSubmit={onSubmit} noValidate>
-        {form.showTitle && form.title ? <h3 className={styles.title}>{form.title}</h3> : null}
+      {steps.map((formStep, index) => (
+        <div key={index} hidden={index !== step}>
+          {formStep.title ? <h3 className='mb-9 font-display text-h3'>{formStep.title}</h3> : null}
 
-        {steps.map((formStep, index) => (
-          <div
-            key={index}
-            ref={(el) => {
-              stepRefs.current[index] = el;
-            }}
-            hidden={index !== step}
-          >
-            {formStep.title ? <h3 className='mb-4 text-[1.15rem]'>{formStep.title}</h3> : null}
+          {formStep.fields
+            .filter((field) => field.type === 'hidden')
+            .map((field) => (
+              <input
+                key={field.name}
+                type='hidden'
+                name={field.name}
+                value={fillTokens(field.defaultValue ?? '', context)}
+              />
+            ))}
 
-            {formStep.fields
-              .filter((field) => field.type === 'hidden')
-              .map((field) => (
-                <input
-                  key={field.name}
-                  type='hidden'
-                  name={field.name}
-                  value={fillTokens(field.defaultValue ?? '', context)}
-                />
-              ))}
-
-            {toFieldRows(formStep.fields).map((row) => {
-              const key = row.map((field) => field.name).join('-');
-              return row.length === 2 ? (
-                <div
-                  key={key}
-                  className={cn(
-                    'grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-0',
-                    styles.rowGap,
-                  )}
-                >
-                  {row.map((field) => (
-                    <FormField
-                      key={field.name}
-                      field={field}
-                      variant={variant}
-                      idPrefix={form.id}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <FormField key={key} field={row[0]} variant={variant} idPrefix={form.id} />
-              );
+          <div className='space-y-9'>
+            {toFieldRows(formStep.fields).map((fieldRow) => {
+              const key = fieldRow.map((field) => field.name).join('-');
+              return fieldRow.length === 2
+                ? row(
+                    <div className='grid gap-9 sm:grid-cols-2 sm:gap-x-10'>
+                      {fieldRow.map((field) => (
+                        <FormField key={field.name} {...fieldProps(field)} />
+                      ))}
+                    </div>,
+                    key,
+                  )
+                : row(<FormField {...fieldProps(fieldRow[0])} />, key);
             })}
           </div>
-        ))}
+        </div>
+      ))}
 
-        {usesRecaptcha && isLastStep ? (
-          <div className='mb-6'>
-            <ReCAPTCHA ref={recaptchaRef} sitekey={recaptcha!.siteKey} />
-          </div>
-        ) : null}
+      {usesRecaptcha && isLastStep ? (
+        <div className='mt-9'>
+          <ReCAPTCHA ref={recaptchaRef} sitekey={recaptcha!.siteKey} />
+        </div>
+      ) : null}
 
-        {error ? (
-          <p role='alert' className='mb-4 text-[0.9rem] text-danger'>
-            {error}
+      {row(
+        <div className='flex flex-wrap items-center gap-6'>
+          {step > 0 ? (
+            <button
+              type='button'
+              onClick={() => setStep((current) => Math.max(current - 1, 0))}
+              className='min-h-11 underline decoration-1 underline-offset-[6px] hover:decoration-2'
+            >
+              {form.backButtonText}
+            </button>
+          ) : null}
+          {isLastStep ? (
+            <button type='submit' disabled={sending} className={cn(ctaClass('solid'), 'disabled:opacity-60')}>
+              {sending ? ui.sending : form.submitButtonText}
+            </button>
+          ) : (
+            <button type='button' onClick={goNext} className={ctaClass('solid')}>
+              {form.nextButtonText}
+            </button>
+          )}
+          <p role='status' className='max-w-[22rem] text-[0.98rem] text-muted'>
+            {status}
           </p>
-        ) : null}
-
-        {isLastStep ? (
-          <button type='submit' disabled={status === 'sending'} className={styles.button}>
-            {status === 'sending' ? 'Sending…' : (form.submitButtonText ?? 'Send')}
-          </button>
-        ) : (
-          <button type='button' onClick={goNext} className={styles.button}>
-            {form.nextButtonText ?? 'Next'}
-            <IconArrowRight />
-          </button>
-        )}
-
-        {step > 0 ? (
-          <button
-            type='button'
-            onClick={() => setStep((current) => Math.max(current - 1, 0))}
-            className='mt-3.5 flex w-full items-center justify-center gap-1.5 text-[0.85rem] font-medium text-subtle transition-colors duration-250 ease-brand hover:text-fg'
-          >
-            ← {form.backButtonText ?? 'Back'}
-          </button>
-        ) : null}
-
-        {footer}
-      </form>
-    </>
+        </div>,
+        'submit',
+        'mt-12',
+      )}
+    </form>
   );
 }

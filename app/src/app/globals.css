@@ -86,53 +86,13 @@
   --text-intro-lg: 1.4rem;
   --text-intro-lg--line-height: 1.6;
 
-  /* The sizes below belong to the template blocks in components/blocks. */
-
-  /* Named sizes for the recurring bits of UI, so a heading scale change does
-     not mean hunting through components for magic rem values. */
-  --text-eyebrow: 0.68rem;
-  --text-eyebrow--line-height: 1;
-  --text-eyebrow--letter-spacing: 0.24em;
-  --text-lead: 1.06rem;
-  --text-lead--line-height: 1.7;
-  --text-nav: 0.845rem;
-  --text-nav--line-height: 1.2;
-  --text-nav--letter-spacing: 0.01em;
-  --text-btn: 0.9rem;
-  --text-btn--line-height: 1.2;
-  --text-btn--letter-spacing: 0.01em;
-  --text-btn-sm: 0.84rem;
-  --text-btn-sm--line-height: 1.2;
-  --text-btn-sm--letter-spacing: 0.01em;
-  --text-arrow: 0.86rem;
-  --text-arrow--line-height: 1.2;
-  --text-arrow--letter-spacing: 0.02em;
-
   /* --- Layout ------------------------------------------------------------
-     `site` is the content width (used by <Wrap>). The `wrap` / `section`
-     spacings belong to the template blocks in components/blocks.
+     `site` is the content width, used by <Wrap> and `wrapClass`.
      ---------------------------------------------------------------------- */
-  --spacing-wrap: 44px;
-  --spacing-wrap-md: 24px;
-  --spacing-wrap-sm: 20px;
-  --spacing-section: 130px;
-  --spacing-section-sm: 82px;
-
   --container-site: 1320px;
 
-  /* Tailwind's default breakpoints, plus one small step for the template
-     blocks. */
-  --breakpoint-xs: 400px;
-
   /* --- Shape and motion -------------------------------------------------- */
-  --radius-pill: 100px;
-  --radius-arch: 220px 220px 4px 4px;
 
-  --shadow-stamp: 0 18px 46px -22px rgb(15 23 42 / 0.5);
-  --shadow-card: 0 30px 58px -34px rgb(15 23 42 / 0.42);
-  --shadow-topbar: 0 1px 0 rgb(15 23 42 / 0.09);
-
-  --ease-brand: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-exit: cubic-bezier(0.5, 0, 0.9, 0.4);
 
@@ -140,10 +100,6 @@
   --animate-arrive: arrive 1.5s 0.45s cubic-bezier(0.2, 0.6, 0.2, 1) both;
   --animate-unveil: unveil 1.8s cubic-bezier(0.2, 0.6, 0.2, 1) both;
   --animate-cross-in: cross-in 0.55s 0.28s var(--ease-soft) both;
-
-  --animate-hero-cycle: hero-cycle 22.5s infinite;
-  --animate-cue: cue 2.4s infinite;
-  --animate-spin-in: spin-in 0.9s var(--ease-brand) both;
 
   @keyframes arrive {
     from {
@@ -176,49 +132,6 @@
     }
   }
 
-  @keyframes hero-cycle {
-    0% {
-      opacity: 0;
-      transform: scale(1.07);
-    }
-    4% {
-      opacity: 1;
-    }
-    30% {
-      opacity: 1;
-    }
-    36% {
-      opacity: 0;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes cue {
-    0%,
-    100% {
-      transform: scaleY(0.4);
-      transform-origin: top;
-    }
-    50% {
-      transform: scaleY(1);
-      transform-origin: top;
-    }
-  }
-
-  @keyframes spin-in {
-    from {
-      opacity: 0;
-      transform: scale(0.7) rotate(-16deg);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
 
 /* Scroll reveal is opt-in: its hidden states only apply when scripts run and

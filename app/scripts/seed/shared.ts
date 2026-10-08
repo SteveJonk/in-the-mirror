@@ -1,37 +1,36 @@
 /**
- * Shared Sanity write helpers for the per-page seed scripts in this folder.
+ * Sanity write helpers for the seed.
  *
  * Requires SANITY_API_WRITE_TOKEN (Editor or Admin) in app/.env
  * Create one at: https://www.sanity.io/manage -> your project -> API -> Tokens
  *
- * Every upsert is idempotent: assets are reused by filename, FAQs by title,
- * pages by slug, navigation/footer by fixed singleton IDs. Re-running a seed
- * updates in place rather than creating duplicates.
+ * Every write is idempotent: documents have fixed ids and are replaced in
+ * place, and assets are reused by filename. Re-running the seed updates
+ * rather than duplicates.
  */
-import {createHash, randomBytes} from 'node:crypto'
-import {createReadStream, existsSync} from 'node:fs'
-import path from 'node:path'
-import {fileURLToPath} from 'node:url'
-import {createClient, type SanityClient} from '@sanity/client'
-import type {FaqItem} from '../../src/lib/demo-content'
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createClient, type SanityClient } from '@sanity/client';
+import { pageId } from './content';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const PUBLIC_DIR = path.join(__dirname, '../../public')
+const ASSETS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'assets');
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-const token = process.env.SANITY_API_WRITE_TOKEN
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const token = process.env.SANITY_API_WRITE_TOKEN;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
 
 if (!projectId) {
-  throw new Error('Missing NEXT_PUBLIC_SANITY_PROJECT_ID')
+  throw new Error('Missing NEXT_PUBLIC_SANITY_PROJECT_ID');
 }
 if (!token) {
   throw new Error(
     'Missing SANITY_API_WRITE_TOKEN. Create a token with Editor rights at https://www.sanity.io/manage and add it to app/.env',
-  )
+  );
 }
 
-export const projectRef = `${projectId}/${dataset}`
+export const projectRef = `${projectId}/${dataset}`;
 
 export const client: SanityClient = createClient({
   projectId,
@@ -39,123 +38,115 @@ export const client: SanityClient = createClient({
   apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2026-07-26',
   token,
   useCdn: false,
-})
-
-export function key(seed?: string) {
-  if (seed) {
-    return createHash('sha1').update(seed).digest('hex').slice(0, 12)
-  }
-  return randomBytes(6).toString('hex')
-}
-
-export function externalLink(href: string) {
-  return {_type: 'link' as const, linkType: 'external' as const, href}
-}
-
-export function cta(label: string, href: string) {
-  return {_type: 'cta' as const, label, linkType: 'external' as const, href}
-}
+});
 
 const CONTENT_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.png': 'image/png',
   '.webp': 'image/webp',
-  '.avif': 'image/avif',
+  '.svg': 'image/svg+xml',
+  '.m4a': 'audio/mp4',
+  '.mp3': 'audio/mpeg',
+};
+
+const uploads = new Map<string, Promise<string>>();
+
+/**
+ * Upload once per filename; later runs reuse the asset that is already there.
+ * Memoised, because the same image appears in several places of one run.
+ */
+function upload(kind: 'image' | 'file', filename: string, read: () => Promise<Buffer>) {
+  if (!uploads.has(filename)) uploads.set(filename, uploadOnce(kind, filename, read));
+  return uploads.get(filename)!;
 }
 
-function contentTypeFor(filename: string) {
-  return CONTENT_TYPES[path.extname(filename).toLowerCase()] ?? 'image/jpeg'
+async function uploadOnce(kind: 'image' | 'file', filename: string, read: () => Promise<Buffer>) {
+  const type = kind === 'image' ? 'sanity.imageAsset' : 'sanity.fileAsset';
+  const existing = await client.fetch<string | null>(
+    `*[_type == $type && originalFilename == $filename][0]._id`,
+    { type, filename },
+  );
+  if (existing) {
+    console.log(`  ↻ ${kind} ${filename}`);
+    return existing;
+  }
+  const contentType = CONTENT_TYPES[path.extname(filename).toLowerCase()];
+  const created = await client.assets
+    .upload(kind, await read(), { filename, contentType })
+    .catch((error: Error) => {
+      throw new Error(`${filename}: ${error.message}`);
+    });
+  console.log(`  ↑ ${kind} ${filename}`);
+  return created._id;
 }
 
-export async function uploadImage(publicPath: string, alt: string) {
-  const relative = publicPath.replace(/^\//, '')
-  const absolute = path.join(PUBLIC_DIR, relative)
-  if (!existsSync(absolute)) {
-    throw new Error(`Image not found: ${absolute}`)
-  }
+const local = (file: string) => () => readFile(path.join(ASSETS_DIR, file));
 
-  const filename = path.basename(absolute)
-  const existingId = await client.fetch<string | null>(
-    `*[_type == "sanity.imageAsset" && originalFilename == $filename][0]._id`,
-    {filename},
-  )
-
-  const assetId =
-    existingId ??
-    (
-      await client.assets.upload('image', createReadStream(absolute), {
-        filename,
-        contentType: contentTypeFor(filename),
-      })
-    )._id
-
-  if (existingId) {
-    console.log(`  ↻ image ${filename}`)
-  } else {
-    console.log(`  ↑ image ${filename}`)
-  }
-
-  return {
-    _type: 'image' as const,
-    asset: {_type: 'reference' as const, _ref: assetId},
-    alt,
-  }
+async function download(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Download failed (${response.status}): ${url}`);
+  return Buffer.from(await response.arrayBuffer());
 }
 
-export async function upsertFaq(faq: FaqItem) {
-  const existingId = await client.fetch<string | null>(
-    `*[_type == "faq" && title == $title][0]._id`,
-    {title: faq.question},
-  )
+const reference = (_ref: string) => ({ _type: 'reference', _ref });
 
-  const doc = {
-    _type: 'faq' as const,
-    title: faq.question,
-    answer: faq.answer,
-    ...(faq.link ? {link: cta(faq.link.label, faq.link.href)} : {}),
-    ...(faq.afterLink ? {afterLink: faq.afterLink} : {}),
+type Node = unknown;
+
+/**
+ * Walks seed content and turns its markers (see `content.ts`) into what Sanity
+ * stores: uploaded assets and page references. Objects in arrays get a `_key`
+ * derived from their position, so re-seeding keeps the same keys.
+ */
+export async function resolve(node: Node, keyPath = 'root'): Promise<Node> {
+  if (Array.isArray(node)) {
+    return Promise.all(
+      node.map(async (item, index) => {
+        const resolved = await resolve(item, `${keyPath}.${index}`);
+        if (resolved && typeof resolved === 'object' && !Array.isArray(resolved) && !('_key' in resolved)) {
+          const _key = createHash('sha1').update(`${keyPath}.${index}`).digest('hex').slice(0, 12);
+          return { _key, ...resolved };
+        }
+        return resolved;
+      }),
+    );
+  }
+  if (!node || typeof node !== 'object') return node;
+
+  const object = node as Record<string, unknown>;
+  if ('__asset' in object) {
+    const file = String(object.__asset);
+    const id = await upload('image', file, local(file));
+    return { _type: 'image', asset: reference(id), ...(object.alt ? { alt: object.alt } : {}) };
+  }
+  if ('__remote' in object) {
+    const id = await upload('image', String(object.filename), () => download(String(object.__remote)));
+    return { _type: 'image', asset: reference(id), ...(object.alt ? { alt: object.alt } : {}) };
+  }
+  if ('__file' in object) {
+    const file = String(object.__file);
+    const id = await upload('file', file, local(file));
+    return { _type: 'file', asset: reference(id) };
+  }
+  if ('__page' in object) {
+    return reference(pageId(String(object.__page)));
   }
 
-  if (existingId) {
-    const patch = client.patch(existingId).set({
-      title: faq.question,
-      answer: faq.answer,
-      ...(faq.link ? {link: cta(faq.link.label, faq.link.href)} : {}),
-      ...(faq.afterLink ? {afterLink: faq.afterLink} : {}),
-    })
-    if (!faq.link) patch.unset(['link'])
-    if (!faq.afterLink) patch.unset(['afterLink'])
-    await patch.commit()
-    console.log(`  ↻ faq ${faq.question}`)
-    return existingId
-  }
-
-  const created = await client.create(doc)
-  console.log(`  + faq ${faq.question}`)
-  return created._id
+  const entries = await Promise.all(
+    Object.entries(object).map(async ([key, value]) => [key, await resolve(value, `${keyPath}.${key}`)]),
+  );
+  return Object.fromEntries(entries);
 }
 
-export async function upsertPage(slug: string, title: string, content: unknown[]) {
-  const existingId = await client.fetch<string | null>(
-    `*[_type == "page" && slug.current == $slug][0]._id`,
-    {slug},
-  )
-
-  const doc = {
-    _type: 'page' as const,
-    title,
-    slug: {_type: 'slug' as const, current: slug},
-    content,
-  }
-
-  if (existingId) {
-    await client.patch(existingId).set(doc).commit()
-    console.log(`✓ page /${slug === 'home' ? '' : slug} updated (${existingId})`)
-    return existingId
-  }
-
-  const created = await client.create(doc)
-  console.log(`✓ page /${slug === 'home' ? '' : slug} created (${created._id})`)
-  return created._id
+/** Resolve and write a set of documents in one transaction, replacing each by id. */
+export async function replaceAll(documents: Array<{ _id: string; _type: string }>) {
+  // One by one rather than as an array: array items get a `_key`, documents must not.
+  const resolved = (await Promise.all(documents.map((document) => resolve(document, document._id)))) as Array<{
+    _id: string;
+    _type: string;
+  }>;
+  const transaction = client.transaction();
+  for (const document of resolved) transaction.createOrReplace(document);
+  await transaction.commit();
+  for (const document of resolved) console.log(`✓ ${document._type} ${document._id}`);
 }

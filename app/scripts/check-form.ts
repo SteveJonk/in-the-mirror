@@ -16,8 +16,9 @@
  */
 import assert from 'node:assert/strict';
 import { evaluate, parse } from 'groq-js';
-import { CONTACT_FORM_FIELDS } from '@/lib/demo-content';
+import { CONTACT_FORM_FIELDS, WORKSHOP_FORM_FIELDS } from './seed/content';
 import {
+  fieldError,
   fillTokens,
   toFieldRows,
   toFormDefinition,
@@ -144,15 +145,25 @@ async function checkAllowList() {
   );
 }
 
-// The demo form the seed pushes has to survive the same round trip.
-const demo = toFormDefinition({
-  _id: 'form-contact',
-  mode: 'simple',
-  fields: CONTACT_FORM_FIELDS,
-});
-assert.ok(demo, 'the seeded demo form must render');
-const demoNames = new Set(CONTACT_FORM_FIELDS.map((item) => item.name));
-assert.equal(demoNames.size, CONTACT_FORM_FIELDS.length, 'field names are the mail keys — unique');
+// The forms the seed pushes have to survive the same round trip.
+for (const fields of [CONTACT_FORM_FIELDS, WORKSHOP_FORM_FIELDS]) {
+  const seeded = toFormDefinition({ _id: 'form-seeded', mode: 'simple', fields });
+  assert.ok(seeded, 'a seeded form must render');
+  const seededNames = new Set(fields.map((item) => item.name));
+  assert.equal(seededNames.size, fields.length, 'field names are the mail keys — unique');
+}
+
+// Validation: a required field needs a value, its own message wins, an e-mail must look like one.
+const messages = { required: 'required', invalidEmail: 'invalid' };
+assert.equal(fieldError({ ...field('a'), isRequired: true }, ['  '], messages), 'required', 'blank is empty');
+assert.equal(
+  fieldError({ ...field('a'), isRequired: true, errorMessage: 'Vul je naam in.' }, [], messages),
+  'Vul je naam in.',
+);
+assert.equal(fieldError({ ...field('a', 'full', 'checkbox'), isRequired: true }, ['ja'], messages), '');
+assert.equal(fieldError(field('e', 'full', 'email'), ['nope'], messages), 'invalid', 'optional, but if filled it must be valid');
+assert.equal(fieldError(field('e', 'full', 'email'), ['a@b.nl'], messages), '');
+assert.equal(fieldError(field('e', 'full', 'email'), [], messages), '', 'optional and empty is fine');
 
 // 4. Redirect only when the switch is on and the link actually resolves.
 assert.equal(toRedirect(false, { linkType: 'external', href: 'https://x.example' }), undefined);

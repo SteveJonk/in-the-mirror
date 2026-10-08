@@ -1,319 +1,100 @@
-import { Benefits } from '@/components/blocks/Benefits';
-import { CrossLinks } from '@/components/blocks/CrossLinks';
-import { ContactForm, type ContactFormAside } from '@/components/blocks/ContactForm';
-import { CtaBand } from '@/components/blocks/CtaBand';
-import { Faq } from '@/components/blocks/Faq';
-import { Hero } from '@/components/blocks/Hero';
-import { Intro } from '@/components/blocks/Intro';
+import { Calendar } from '@/components/blocks/Calendar';
+import { Callout } from '@/components/blocks/Callout';
+import { Columns } from '@/components/blocks/Columns';
+import { ContactForm } from '@/components/blocks/ContactForm';
+import { Episodes } from '@/components/blocks/Episodes';
+import { FeatureImage } from '@/components/blocks/FeatureImage';
+import { HomeHero } from '@/components/blocks/HomeHero';
 import { MediaText } from '@/components/blocks/MediaText';
 import { PageHero } from '@/components/blocks/PageHero';
-import { Services } from '@/components/blocks/Services';
-import { Steps } from '@/components/blocks/Steps';
-import type { ContactIconName } from '@/components/ui/ContactIcon';
-import { toFormDefinition } from '@/lib/form-fields';
-import { imageSrc, toImage, type SanityImage } from '@/sanity/image';
-import { resolveHref, type SanityLabeledLink, type SanityLink } from '@/lib/links';
-import type { Benefit } from '@/lib/demo-content';
+import { Pricing } from '@/components/blocks/Pricing';
+import { Quote } from '@/components/blocks/Quote';
+import { Schedule } from '@/components/blocks/Schedule';
+import { TextColumns } from '@/components/blocks/TextColumns';
+import { Tiles } from '@/components/blocks/Tiles';
+import type { Background, Block, SectionContext } from '@/components/blocks/types';
 
-type SanityCta = SanityLabeledLink;
+/** The footer sits on stone, so the last block curves into that. */
+const FOOTER_BACKGROUND: Background = 'stone';
 
-type PageBlock = {
-  _type: string;
-  _key: string;
-  [key: string]: unknown;
-};
-
-function toCta(cta: SanityCta | undefined | null) {
-  const href = resolveHref(cta);
-  if (!cta?.label || !href) return undefined;
-  return { label: cta.label, href };
-}
-
-/**
- * Map one Sanity block onto its React component.
- *
- * ADDING A BLOCK — four touchpoints, in this order:
- *   1. `studio/schemaTypes/blocks/<name>Type.ts`   — the fields
- *   2. `studio/schemaTypes/index.ts` + `pageBuilderType.ts` — register it
- *   3. `src/sanity/queries.ts`                     — project any link fields
- *   4. a `case` here + a component in `src/components/blocks/`
- *
- * Every field arrives untyped (`unknown`) because the block union is open, so
- * each case casts what it reads. Unknown types warn and render nothing rather
- * than throwing — a page keeps working while a new block is half-built.
- */
-function renderBlock(block: PageBlock, path?: string) {
+function renderBlock(block: Block, section: SectionContext, path?: string) {
   switch (block._type) {
-    case 'hero': {
-      const slides = (block.slides as SanityImage[] | undefined)
-        ?.map((slide) => toImage(slide, 2400, 1600))
-        .filter((slide): slide is { src: string; alt: string } => Boolean(slide));
-      return (
-        <Hero
-          key={block._key}
-          slides={slides}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          titleHighlight={block.titleHighlight as string | undefined}
-          lead={block.lead as string | undefined}
-          primaryCta={toCta(block.primaryCta as SanityCta)}
-          secondaryCta={toCta(block.secondaryCta as SanityCta)}
-          badgeValue={block.badgeValue as string | undefined}
-          badgeLabel={block.badgeLabel as string | undefined}
-        />
-      );
-    }
-    case 'intro': {
-      return (
-        <Intro
-          key={block._key}
-          image={toImage(block.image as SanityImage, 800, 1000)}
-          stampValue={block.stampValue as string | undefined}
-          stampLabel={block.stampLabel as string | undefined}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          titleHighlight={block.titleHighlight as string | undefined}
-          leads={block.leads as string[] | undefined}
-          facts={block.facts as { value: string; label: string }[] | undefined}
-          link={toCta(block.link as SanityCta)}
-        />
-      );
-    }
-    case 'services': {
-      const items = (
-        block.items as
-          | Array<{
-              label: string;
-              title: string;
-              description: string;
-              image: SanityImage;
-              link?: SanityLink;
-            }>
-          | undefined
-      )
-        ?.map((item, index) => {
-          const href = resolveHref(item.link);
-          if (!href) return null;
-          return {
-            label: item.label,
-            title: item.title,
-            description: item.description,
-            href,
-            image: toImage(item.image, 640, 768) ?? { src: '', alt: '' },
-            delay: (index === 0 ? undefined : index) as 1 | 2 | 3 | undefined,
-          };
-        })
-        .filter((item): item is NonNullable<typeof item> => Boolean(item));
-      const highlight = block.highlight as
-        | { badge?: string; title?: string; body?: string; cta?: SanityCta }
-        | undefined;
-      return (
-        <Services
-          key={block._key}
-          title={block.title as string | undefined}
-          lead={block.lead as string | undefined}
-          items={items}
-          highlight={
-            highlight?.title
-              ? {
-                  badge: highlight.badge ?? '',
-                  title: highlight.title,
-                  body: highlight.body ?? '',
-                  cta: toCta(highlight.cta),
-                }
-              : undefined
-          }
-        />
-      );
-    }
-    case 'mediaText': {
-      return (
-        <MediaText
-          key={block._key}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          paragraphs={block.paragraphs as string[] | undefined}
-          cta={toCta(block.cta as SanityCta)}
-          image={toImage(block.image as SanityImage, 900, 720)}
-        />
-      );
-    }
-    case 'pageHero': {
-      return (
-        <PageHero
-          key={block._key}
-          image={toImage(block.image as SanityImage, 2400, 1600)}
-          breadcrumbLabel={block.breadcrumbLabel as string | undefined}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          titleHighlight={block.titleHighlight as string | undefined}
-          lead={block.lead as string | undefined}
-          primaryCta={toCta(block.primaryCta as SanityCta)}
-          secondaryCta={toCta(block.secondaryCta as SanityCta)}
-        />
-      );
-    }
-    case 'benefits': {
-      return (
-        <Benefits
-          key={block._key}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          lead={block.lead as string | undefined}
-          image={toImage(block.image as SanityImage, 900, 1125)}
-          items={block.items as Benefit[] | undefined}
-        />
-      );
-    }
-    case 'steps': {
-      const items = (
-        block.items as
-          | Array<{
-              number: string;
-              title: string;
-              body: string;
-              image: SanityImage;
-            }>
-          | undefined
-      )?.map((item) => ({
-        number: item.number,
-        title: item.title,
-        body: item.body,
-        image: imageSrc(item.image, 900, 1125) ?? '',
-      }));
-      return (
-        <Steps
-          key={block._key}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          lead={block.lead as string | undefined}
-          cta={toCta(block.cta as SanityCta)}
-          items={items}
-        />
-      );
-    }
-    case 'faqs': {
-      // FAQs are their own documents so one answer can be reused across pages.
-      const items = (
-        block.faqs as
-          | Array<{
-              title?: string;
-              answer?: string;
-              link?: SanityCta;
-              afterLink?: string;
-            }>
-          | undefined
-      )
-        ?.filter((faq) => faq?.title && faq?.answer)
-        .map((faq) => ({
-          question: faq.title!,
-          answer: faq.answer!,
-          link: toCta(faq.link),
-          afterLink: faq.afterLink,
-        }));
-      return (
-        <Faq
-          key={block._key}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          intro={block.intro as string | undefined}
-          link={toCta(block.link as SanityCta)}
-          items={items}
-        />
-      );
-    }
-    case 'crossLinks': {
-      const items = (
-        block.items as
-          | Array<{ title?: string; body?: string; link?: SanityLink }>
-          | undefined
-      )
-        ?.map((item) => {
-          const href = resolveHref(item.link);
-          if (!item.title || !item.body || !href) return null;
-          return { title: item.title, body: item.body, href };
-        })
-        .filter((item): item is { title: string; body: string; href: string } =>
-          Boolean(item),
-        );
-      return <CrossLinks key={block._key} items={items} />;
-    }
-    case 'ctaBand': {
-      return (
-        <CtaBand
-          key={block._key}
-          image={toImage(block.image as SanityImage, 2400, 1200)}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          body={block.body as string | undefined}
-          primaryCta={toCta(block.primaryCta as SanityCta)}
-          secondaryCta={toCta(block.secondaryCta as SanityCta)}
-        />
-      );
-    }
-    case 'contactForm': {
-      const aside = block.aside as
-        | {
-            title?: string;
-            body?: string;
-            items?: Array<{ icon: ContactIconName; title: string; subtitle?: string }>;
-            cta?: SanityCta;
-          }
-        | undefined;
-      // Only the site key travels to the browser; the secret is read by the
-      // submit route, which never sends it anywhere.
-      const recaptcha = block.recaptcha as
-        | { recaptchaEnabled?: boolean; recaptchaSiteKey?: string }
-        | undefined;
-
-      return (
-        <ContactForm
-          key={block._key}
-          eyebrow={block.eyebrow as string | undefined}
-          title={block.title as string | undefined}
-          lead={block.lead as string | undefined}
-          note={block.note as string | undefined}
-          form={toFormDefinition(block.form)}
-          // What a hidden `{{path}}` field is filled with, so the mail says
-          // which page the form was sent from.
-          context={path ? { path } : undefined}
-          aside={
-            aside?.title
-              ? ({
-                  title: aside.title,
-                  body: aside.body ?? '',
-                  items: (aside.items ?? []).map((item) => ({
-                    icon: item.icon,
-                    title: item.title,
-                    subtitle: item.subtitle ?? '',
-                  })),
-                  cta: toCta(aside.cta),
-                } satisfies ContactFormAside)
-              : undefined
-          }
-          recaptcha={
-            recaptcha?.recaptchaEnabled && recaptcha.recaptchaSiteKey
-              ? { enabled: true, siteKey: recaptcha.recaptchaSiteKey }
-              : undefined
-          }
-        />
-      );
-    }
-    default:
-      console.warn(`Unknown page builder block type: ${block._type}`);
+    case 'homeHero':
+      return <HomeHero key={block._key} block={block} section={section} />;
+    case 'pageHero':
+      return <PageHero key={block._key} block={block} section={section} />;
+    case 'mediaText':
+      return <MediaText key={block._key} block={block} section={section} />;
+    case 'tiles':
+      return <Tiles key={block._key} block={block} section={section} />;
+    case 'columns':
+      return <Columns key={block._key} block={block} section={section} />;
+    case 'textColumns':
+      return <TextColumns key={block._key} block={block} section={section} />;
+    case 'quote':
+      return <Quote key={block._key} block={block} section={section} />;
+    case 'featureImage':
+      return <FeatureImage key={block._key} block={block} section={section} />;
+    case 'callout':
+      return <Callout key={block._key} block={block} section={section} />;
+    case 'pricing':
+      return <Pricing key={block._key} block={block} section={section} />;
+    case 'schedule':
+      return <Schedule key={block._key} block={block} section={section} />;
+    case 'episodes':
+      return <Episodes key={block._key} block={block} section={section} />;
+    case 'calendar':
+      return <Calendar key={block._key} block={block} section={section} />;
+    case 'contactForm':
+      return <ContactForm key={block._key} block={block} section={section} path={path} />;
+    default: {
+      // Unknown types warn and render nothing, so a half-built block never breaks a page.
+      const unknown: { _type: string } = block;
+      console.warn(`Unknown page builder block type: ${unknown._type}`);
       return null;
+    }
   }
 }
 
+/**
+ * Renders a page's blocks in order.
+ *
+ * ADDING A BLOCK — after the studio schema (see `studio/schemaTypes/index.ts`):
+ *   1. its branch in `PAGE_QUERY` (`src/sanity/queries.ts`), then `npm run typegen`
+ *   2. a component in `src/components/blocks/` taking `BlockProps<'<name>'>`
+ *   3. a `case` above
+ *
+ * Each block learns from its neighbours how to sit on the page: whether it
+ * opens it, whether the block above shares its background (so the top padding
+ * can go) and which background comes next (so it can curve into it).
+ */
 export function PageBuilder({
   content,
   path,
 }: {
-  content?: PageBlock[] | null;
+  content?: Block[] | null;
   /** The page's own path, for blocks that record where they were used. */
   path?: string;
 }) {
-  if (!Array.isArray(content) || content.length === 0) return null;
+  if (!content?.length) return null;
+  const backgrounds = content.map((block) => block.background ?? 'paper');
 
-  return <>{content.map((block) => renderBlock(block, path))}</>;
+  return (
+    <>
+      {content.map((block, i) =>
+        renderBlock(
+          block,
+          {
+            background: backgrounds[i],
+            next: backgrounds[i + 1] ?? FOOTER_BACKGROUND,
+            collapseTop: i > 0 && backgrounds[i - 1] === backgrounds[i],
+            first: i === 0,
+            spacing: block.spacing ?? 'regular',
+            anchor: block.anchor ?? undefined,
+          },
+          path,
+        ),
+      )}
+    </>
+  );
 }
