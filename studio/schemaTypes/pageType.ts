@@ -27,6 +27,12 @@ export const pageType = defineType({
       name: 'content',
       type: 'pageBuilder',
     }),
+    defineField({
+      name: 'photoCredit',
+      title: 'Photo credit',
+      type: 'string',
+      description: 'Shown in the footer of this page, e.g. "Foto van … via Unsplash."',
+    }),
   ],
   preview: {
     select: {

@@ -314,7 +314,7 @@ export type PageHero = {
   }>;
   primaryCta?: Cta;
   secondaryLink?: Cta;
-  media?: "image" | "mirror" | "illustration" | "none";
+  media?: "image" | "mirror" | "illustration" | "wave" | "none";
   image?: {
     asset: SanityImageAssetReference;
     media?: unknown;
@@ -1095,7 +1095,7 @@ export type PAGE_QUERY_RESULT = {
           } | null;
           href?: string;
         } | null;
-        media: "illustration" | "image" | "mirror" | "none" | null;
+        media: "illustration" | "image" | "mirror" | "none" | "wave" | null;
         image: {
           alt: string | null;
           src: string;

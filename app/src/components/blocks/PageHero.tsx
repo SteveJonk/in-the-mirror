@@ -3,6 +3,7 @@ import { FactList } from '@/components/ui/FactList';
 import { MirrorArch } from '@/components/ui/MirrorArch';
 import { Reveal } from '@/components/ui/Reveal';
 import { SanityImage } from '@/components/ui/SanityImage';
+import { SoundWave } from '@/components/ui/SoundWave';
 import { OPENER, OPENER_PADDING, Section } from '@/components/ui/Section';
 import { TextLink } from '@/components/ui/TextLink';
 import { wrapClass } from '@/components/ui/Wrap';
@@ -13,7 +14,13 @@ import type { BlockProps } from './types';
 export function PageHero({ block, section }: BlockProps<'pageHero'>) {
   const primary = toLabeledHref(block.primaryCta);
   const secondary = toLabeledHref(block.secondaryLink);
-  const media = block.image?.src ? (block.media ?? 'image') : block.media === 'mirror' ? 'mirror' : 'none';
+  const media =
+    block.media === 'wave' || block.media === 'mirror'
+      ? block.media
+      : block.image?.src
+        ? (block.media ?? 'image')
+        : 'none';
+  const below = media === 'illustration' || media === 'wave';
   const beside = media === 'image' || media === 'mirror';
 
   const text = (
@@ -54,13 +61,17 @@ export function PageHero({ block, section }: BlockProps<'pageHero'>) {
     return (
       <Section
         section={section}
-        padding={media === 'illustration' ? 'pt-32 pb-16 md:pt-48 md:pb-24' : OPENER_PADDING}
+        padding={below ? 'pt-32 pb-16 md:pt-48 md:pb-24' : OPENER_PADDING}
       >
         <div className={wrapClass}>
           <div className={`max-w-[52rem] ${OPENER}`}>{text}</div>
-          {media === 'illustration' && (
+          {below && (
             <Reveal as='figure' variant='fade' className='mt-16 md:mt-24'>
-              <SanityImage image={block.image} sizes='100vw' className='h-auto w-full' />
+              {media === 'wave' ? (
+                <SoundWave />
+              ) : (
+                <SanityImage image={block.image} sizes='100vw' className='h-auto w-full' />
+              )}
             </Reveal>
           )}
         </div>

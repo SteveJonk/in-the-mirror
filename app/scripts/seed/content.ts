@@ -782,8 +782,7 @@ const PODCAST: PageInput = {
       _type: 'pageHero',
       title: 'Luister naar een nieuwe kijk',
       intro: 'Een plek om te luisteren. Zet je koptelefoon op, neem de tijd en laat een nieuwe kijk op jezelf in je eigen tempo binnenkomen.',
-      media: 'illustration',
-      image: asset('geluidsgolf.svg', 'Illustratie: een golf van geluid'),
+      media: 'wave',
     },
     {
       _type: 'episodes',

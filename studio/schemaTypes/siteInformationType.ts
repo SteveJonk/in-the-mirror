@@ -1,6 +1,9 @@
 import {CogIcon} from '@sanity/icons/Cog'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+const uiText = (name: string, title: string, fieldset: string) =>
+  defineField({name, title, type: 'string', fieldset})
+
 /**
  * Who the site belongs to: the details that appear in the header, the footer
  * and the structured data.
@@ -19,6 +22,7 @@ export const siteInformationType = defineType({
     {name: 'identity', title: 'Identity', default: true},
     {name: 'contact', title: 'Contact'},
     {name: 'elsewhere', title: 'Elsewhere'},
+    {name: 'interface', title: 'Interface texts'},
   ],
   fields: [
     defineField({
@@ -28,6 +32,12 @@ export const siteInformationType = defineType({
       group: 'identity',
       description: 'Used in the logo, the page title template and the structured data.',
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'owner',
+      type: 'string',
+      group: 'identity',
+      description: 'The person behind the site. Shown in the footer and after the site name in page titles.',
     }),
     defineField({
       name: 'description',
@@ -48,7 +58,7 @@ export const siteInformationType = defineType({
       name: 'language',
       type: 'string',
       group: 'identity',
-      initialValue: 'en',
+      initialValue: 'nl',
       description: 'BCP 47 language tag, e.g. en, en-GB, nl. Sets the page language.',
     }),
     defineField({name: 'phone', type: 'string', group: 'contact'}),
@@ -104,6 +114,46 @@ export const siteInformationType = defineType({
       group: 'elsewhere',
       of: [defineArrayMember({type: 'string'})],
       description: 'Memberships, certifications, awards. Leave empty to hide the row.',
+    }),
+    defineField({
+      name: 'interfaceTexts',
+      title: 'Interface texts',
+      type: 'object',
+      group: 'interface',
+      description:
+        'The small texts around the content: menu and player buttons, form messages, the page-not-found page. Many are read aloud by screen readers only.',
+      fieldsets: [
+        {name: 'navigation', title: 'Navigation', options: {collapsible: true}},
+        {name: 'audio', title: 'Audio player', options: {collapsible: true}},
+        {name: 'forms', title: 'Forms', options: {collapsible: true}},
+        {name: 'notFound', title: 'Page not found', options: {collapsible: true}},
+      ],
+      fields: [
+        uiText('skipToContent', 'Skip to content link', 'navigation'),
+        uiText('mainMenu', 'Name of the main menu', 'navigation'),
+        uiText('footerMenu', 'Name of the footer menu', 'navigation'),
+        uiText('menu', 'Name of the mobile menu', 'navigation'),
+        uiText('openMenu', 'Open menu button', 'navigation'),
+        uiText('closeMenu', 'Close menu button', 'navigation'),
+        uiText('audioPlayer', 'Name of the player', 'audio'),
+        uiText('play', 'Play button', 'audio'),
+        uiText('pause', 'Pause button', 'audio'),
+        uiText('duration', 'Duration label', 'audio'),
+        uiText('progress', 'Progress slider', 'audio'),
+        uiText('of', 'Word between position and length ("3:12 of 21:19")', 'audio'),
+        uiText('back', 'Skip back button', 'audio'),
+        uiText('forward', 'Skip forward button', 'audio'),
+        uiText('required', 'Required field left empty (fields without their own message)', 'forms'),
+        uiText('invalidEmail', 'E-mail address not valid', 'forms'),
+        uiText('checkFields', 'Summary when fields need attention', 'forms'),
+        uiText('sending', 'Submit button while sending', 'forms'),
+        uiText('sendFailed', 'Sending failed', 'forms'),
+        uiText('recaptcha', 'reCAPTCHA not ticked', 'forms'),
+        uiText('stepCounter', 'Step counter — {current} and {total} are filled in', 'forms'),
+        uiText('notFoundTitle', 'Title', 'notFound'),
+        defineField({name: 'notFoundText', title: 'Text', type: 'text', rows: 3, fieldset: 'notFound'}),
+        uiText('notFoundButton', 'Button to the home page', 'notFound'),
+      ],
     }),
   ],
   preview: {

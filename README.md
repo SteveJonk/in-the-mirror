@@ -9,9 +9,9 @@ studio and it is live.
 
 ## What's in it
 
-- **Page builder** — ten blocks, each one CMS-editable, composable in any order
-- **Three pages to start from** — a home page, a content page (`/about`) and a
-  working contact page
+- **Page builder** — fourteen blocks, each one CMS-editable, composable in any order
+- **Six pages** — home, Over mij, Workshop, Persoonlijk gesprek, Podcast and
+  Contact, with the real copy from the approved designs
 - **SEO** — per-page meta title, description, OG image and `noindex`, driven
   from the CMS with sensible site-wide fallbacks
 - **Theming** — one `@theme` block controls every colour, font and spacing token
@@ -21,8 +21,9 @@ studio and it is live.
 - **Media library** — a studio panel listing every upload, with search,
   usage per file and a delete button for the ones nothing points at
 - **Analytics** — GTM and the Meta pixel, both off until you set an id
-- **Everything in the CMS** — pages, menus and the site's own details, with
-  code-level defaults behind every field
+- **Everything in the CMS** — pages, menus, the footer, the site's own details
+  and even the small interface texts (menu buttons, player labels, form messages);
+  nothing user-facing is hardcoded
 - **Seeding** — one command fills a fresh Sanity project with working content
 
 ## Setup
@@ -93,16 +94,14 @@ care.
 
 ### Site details
 
-Company name, description, phone, email, address, language and footer badges
-live in the CMS, as the **Site information** singleton at the top of the
-studio's menu. They drive the header, the footer, the page title template and
-the structured data.
+Site name, owner, description, contact details, language and the **Interface
+texts** live in the CMS, as the **Site information** singleton at the top of the
+studio's menu. They drive the header, the footer, the page title template
+("Page | In the Mirror | Camilla Amba"), the structured data and every small
+label the interface shows or reads aloud.
 
-`app/src/lib/site.ts` holds the defaults for all of it, and does the same two
-jobs `demo-content.ts` does for blocks: it is what the front end falls back to
-when a field is empty **or the CMS is unreachable**, *and* it is what
-`npm run seed:site` pushes into Sanity. Replace the constants once and both
-sides move together.
+`app/src/lib/site.ts` holds deliberately neutral defaults: an empty field — or
+an unreachable CMS — renders nothing rather than stale copy.
 
 Read the resolved values with `getSiteInformation()`
 (`app/src/sanity/site-information.ts`) — never `SITE_DEFAULTS` directly in a
@@ -116,31 +115,35 @@ need it before — or without — a CMS round trip.
 
 ### Copy
 
-`app/src/lib/demo-content.ts` holds the demo copy for every block, and it does
-two jobs at once: it is what a block falls back to when the CMS has not supplied
-a field, **and** it is what `npm run seed` pushes into Sanity. Replace the
-strings there and both sides move together.
-
-The copy is written for an invented studio ("Fieldnote") so that a seeded site
-reads like a real site instead of a page of lorem ipsum — it is easier to judge
-spacing and hierarchy against sentences of realistic length. It is still filler:
-replace it, along with the matching details in `app/src/lib/site.ts`.
+All copy lives in Sanity. `app/scripts/seed/content.ts` holds the content as it
+was first seeded from the designs — the starting point for a fresh dataset, not
+a fallback the site reads. Images, illustrations, icons and the podcast audio it
+uploads sit in `app/scripts/seed/assets/` (the audio is gitignored; keep a copy).
 
 ## The blocks
 
-| Block        | What it is                                       |
-| ------------ | ------------------------------------------------ |
-| `hero`       | Full-bleed opener with a cycling image and badge |
-| `pageHero`   | Shorter opener for inner pages, with breadcrumb  |
-| `intro`      | Text and image with a stat row                   |
-| `services`   | Three cards plus an optional dark highlight band |
-| `mediaText`  | Text column beside a supporting photo            |
-| `benefits`   | Icon list beside an image                        |
-| `steps`      | Numbered process with a sticky image             |
-| `faqs`       | Accordion, fed by reusable FAQ documents         |
-| `contactForm`| A form from Forms, with a contact panel beside it |
-| `crossLinks` | Two cards pointing at related pages              |
-| `ctaBand`    | Closing call to action over a photo              |
+| Block         | What it is                                                        |
+| ------------- | ----------------------------------------------------------------- |
+| `homeHero`    | Home opener: text beside a full-height artwork                    |
+| `pageHero`    | Inner-page opener: title, intro, facts, buttons, photo/mirror/illustration |
+| `mediaText`   | Text beside a photo, illustration, mirror arch or price card; or text alone |
+| `tiles`       | A row of illustrated links                                        |
+| `columns`     | Title + intro, then an icon grid or two columns under a rule      |
+| `textColumns` | Two columns of rich text with a button below                      |
+| `quote`       | A large pull quote                                                |
+| `featureImage`| One image on its own, centred                                     |
+| `callout`     | A title with a short text (and button) beside it                  |
+| `pricing`     | Prices side by side, with the ways it can take place              |
+| `schedule`    | A day programme of time slots                                     |
+| `episodes`    | Podcast episodes, each with a player                              |
+| `calendar`    | The booking calendar (a placeholder until a Cal.com URL is set)   |
+| `contactForm` | A form from Forms with its introduction; as the first block, the page opener |
+
+Every block shares a collapsed **Section** fieldset: background (paper, stone
+or ink), spacing and an anchor for `#links`. The rest follows from the order of
+the blocks: the first one opens the page (h1, entrance animation), a block
+curves into the next when their backgrounds differ, and the top padding
+collapses under a block with the same background.
 
 ## Adding a block
 
@@ -158,8 +161,8 @@ Four touchpoints, in this order:
 5. **`npm run typegen`** — regenerate the types for the new fields (see
    [Types](#types))
 
-Give the component optional props with defaults from `demo-content.ts` and it
-renders before an editor has filled anything in. Unknown block types log a
+Type the component as `BlockProps<'<name>'>` (from `components/blocks/types.ts`)
+and it gets the generated query type for free. Unknown block types log a
 warning and render nothing, so a half-built block never breaks a page.
 
 ## Types
@@ -280,19 +283,21 @@ field is an editor's job, not a deploy.
   fields spread over several steps with a progress bar and per-step validation.
 - **Form settings** (a singleton) — the shared mail settings, the mail's logo
   and colours, and the reCAPTCHA switch.
-- **`contactForm`** (a block) — drops a form onto a page, with the surrounding
-  copy and an optional contact panel beside it. The form is a *reference*, so
-  the same one can appear on several pages and its fields live in one place.
+- **`contactForm`** (a block) — drops a form onto a page, with its introduction
+  beside it. The form is a *reference*, so the same one can appear on several
+  pages and its fields live in one place.
+
+A required field can carry its own **error message** ("Vul je naam in.");
+without one it uses the general text from Site information → Interface texts.
 
 ```bash
-npm run seed:forms      # form settings + a working contact form
-npm run seed:contact    # /contact, the page that renders it
-npm run check:form      # assertions over the layout and the allow-list
+npm run seed:forms      # form settings + the contact and workshop forms
+npm run seed:pages      # the pages, episodes and navigation
+npm run check:form      # assertions over the layout, the allow-list and validation
 ```
 
-`seed:forms` writes the form document and the shared settings; `seed:contact`
-writes the page that references it, and `seed:nav` points the Contact menu
-items at that page. Run in that order, or let `npm run seed` do it for you.
+Run `forms` before `pages` (the pages reference the forms), or let
+`npm run seed` do everything in order.
 
 ### How a submission travels
 
@@ -577,8 +582,7 @@ npm run dev          npm run build        npm run start
 npm run lint         npm run typecheck    npm run typegen
 npm run check:jsonld npm run check:form
 npm run seed         npm run seed:site    npm run seed:forms
-npm run seed:home    npm run seed:about   npm run seed:contact
-npm run seed:nav
+npm run seed:pages
 
 # studio/
 npm run dev          npm run build        npm run deploy
@@ -591,10 +595,9 @@ npm run typegen      npm run schema:extract
   from CMS content. The header and footer degrade gracefully if the CMS is
   unreachable; page content does not, on purpose — an outage should surface as
   an error, not as a silently empty page.
-- Placeholder images live in `app/public/images/`. Replace them with real photos
-  and update the paths in `demo-content.ts`.
 - Sanity reads are cached under one tag (`sanity`, see `src/sanity/fetch.ts`) and refresh at most once an hour on their own. To make a publish go live within seconds, per project:
   1. Set `SANITY_REVALIDATE_SECRET` on the host to a long random string.
   2. In sanity.io/manage -> API -> Webhooks, add one: URL `<site>/api/revalidate`, dataset `production`, trigger on create/update/delete, projection `{_type}`, method POST, and the same secret.
 
   Without the webhook the site still works; edits just take up to an hour to appear.
+  In development nothing is cached, so a publish shows on the next refresh.

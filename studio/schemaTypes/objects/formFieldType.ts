@@ -47,6 +47,8 @@ export const formFieldType = defineType({
           {title: 'E-mail', value: 'email'},
           {title: 'Phone', value: 'tel'},
           {title: 'URL', value: 'url'},
+          {title: 'Date', value: 'date'},
+          {title: 'Time', value: 'time'},
           {title: 'Text area', value: 'textarea'},
           {title: 'Dropdown', value: 'select'},
           {title: 'Radio buttons', value: 'radio'},
@@ -94,6 +96,14 @@ export const formFieldType = defineType({
       type: 'boolean',
       initialValue: false,
       hidden: notFor('hidden'),
+    }),
+    defineField({
+      name: 'errorMessage',
+      type: 'string',
+      description:
+        'Shown when this required field is left empty, e.g. "Vul je naam in." Empty = the general text from Site information → Interface texts.',
+      hidden: ({parent}: {parent?: {type?: string; isRequired?: boolean}}) =>
+        parent?.type === 'hidden' || !parent?.isRequired,
     }),
     defineField({
       name: 'placeholder',

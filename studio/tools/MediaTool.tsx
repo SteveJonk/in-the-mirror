@@ -63,17 +63,14 @@ import {
  */
 
 /** Pinned, so a new API version cannot quietly change these queries. */
-const API_VERSION = '2025-02-19'
+const API_VERSION = '2026-10-28'
 
 /** Cards per batch, with a "show more" underneath. */
 const PAGE_SIZE = 60
 
 type Status = {tone: 'ok' | 'error'; text: string}
 
-type Cleanup =
-  | {step: 'idle'}
-  | {step: 'confirm'}
-  | {step: 'busy'; done: number; total: number}
+type Cleanup = {step: 'idle'} | {step: 'confirm'} | {step: 'busy'; done: number; total: number}
 
 export function MediaLibrary() {
   const client = useClient({apiVersion: API_VERSION})

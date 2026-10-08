@@ -8,10 +8,23 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     name: site.name,
     short_name: site.name,
     description: site.description,
-    icons: [{ src: '/icon.svg', type: 'image/svg+xml', sizes: 'any' }],
     // The paper colour from the theme (`--color-surface` in globals.css).
     theme_color: '#f8f2e8',
     background_color: '#f8f2e8',
     display: 'standalone',
+    icons: [
+      {
+        src: '/web-app-manifest-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/web-app-manifest-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
   };
 }

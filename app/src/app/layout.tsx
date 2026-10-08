@@ -101,6 +101,7 @@ export default async function RootLayout({
     >
       <head>
         <TrackingScriptsHead />
+        <meta name='apple-mobile-web-app-title' content='In the mirror' />
       </head>
       <body className='min-h-full'>
         {/* Vendor-specified position: first element inside <body>. */}

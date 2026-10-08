@@ -2162,6 +2162,10 @@
               },
               {
                 "type": "string",
+                "value": "wave"
+              },
+              {
+                "type": "string",
                 "value": "none"
               }
             ]

@@ -3,6 +3,7 @@ import {CogIcon} from '@sanity/icons/Cog'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {ImagesIcon} from '@sanity/icons/Images'
 import {MenuIcon} from '@sanity/icons/Menu'
+import {MicrophoneIcon} from '@sanity/icons/Microphone'
 import type {StructureResolver} from 'sanity/structure'
 import {MediaLibrary} from './tools/MediaTool'
 
@@ -41,7 +42,7 @@ export const structure: StructureResolver = (S) =>
         .child(S.document().schemaType('footer').documentId('footer').title('Footer')),
       S.divider(),
       S.documentTypeListItem('page').title('Pages'),
-      S.documentTypeListItem('faq').title('FAQs'),
+      S.documentTypeListItem('episode').title('Episodes').icon(MicrophoneIcon),
       S.divider(),
       // Not a document type but a panel of its own: Sanity's asset browser only
       // opens from a field on a document, so without this the media library as
@@ -66,6 +67,6 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       ...S.documentTypeListItems().filter(
         (item) =>
-          item.getId() && !['page', 'faq', 'form', ...SINGLETONS].includes(item.getId()!),
+          item.getId() && !['page', 'episode', 'form', ...SINGLETONS].includes(item.getId()!),
       ),
     ])

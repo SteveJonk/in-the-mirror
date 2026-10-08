@@ -2,36 +2,7 @@ import {MenuIcon} from '@sanity/icons/Menu'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {linkFields} from './objects/linkFields'
 
-const navLinkMember = defineArrayMember({
-  type: 'object',
-  name: 'navLink',
-  fields: [
-    defineField({
-      name: 'label',
-      type: 'string',
-      validation: (rule) => rule.required(),
-    }),
-    ...linkFields,
-  ],
-  preview: {
-    select: {
-      title: 'label',
-      linkType: 'linkType',
-      href: 'href',
-      internalTitle: 'internalLink.title',
-    },
-    prepare({title, linkType, href, internalTitle}) {
-      return {
-        title: title || 'Link',
-        subtitle:
-          linkType === 'internal'
-            ? internalTitle || 'Internal page'
-            : href || 'External URL',
-      }
-    },
-  },
-})
-
+/** The main menu. The header, the mobile menu and the footer all show these links. */
 export const navigationType = defineType({
   name: 'navigation',
   title: 'Navigation',
@@ -39,21 +10,28 @@ export const navigationType = defineType({
   icon: MenuIcon,
   fields: [
     defineField({
-      name: 'navLeft',
-      title: 'Left links',
+      name: 'links',
       type: 'array',
-      of: [navLinkMember],
-    }),
-    defineField({
-      name: 'navRight',
-      title: 'Right links',
-      type: 'array',
-      of: [navLinkMember],
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'navLink',
+          fields: [
+            defineField({name: 'label', type: 'string', validation: (rule) => rule.required()}),
+            ...linkFields,
+          ],
+          preview: {
+            select: {title: 'label', href: 'href', internalTitle: 'internalLink.title'},
+            prepare: ({title, href, internalTitle}) => ({
+              title: title || 'Link',
+              subtitle: internalTitle || href,
+            }),
+          },
+        }),
+      ],
     }),
   ],
   preview: {
-    prepare() {
-      return {title: 'Navigation'}
-    },
+    prepare: () => ({title: 'Navigation'}),
   },
 })
