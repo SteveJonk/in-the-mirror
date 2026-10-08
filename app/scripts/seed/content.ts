@@ -333,7 +333,7 @@ const HOME: PageInput = {
           _type: 'tile',
           label: 'Podcast',
           ...link(page('podcast')),
-          illustration: asset('microfoon.svg', 'Illustratie: iemand houdt een microfoon vast'),
+          illustration: asset('podcast-opname.svg', 'Illustratie: iemand met een koptelefoon neemt een podcast op achter een microfoon'),
         },
         {
           _type: 'tile',
