@@ -18,7 +18,7 @@ export const OPENER_PADDING = 'pt-32 pb-24 md:pt-48 md:pb-40';
 export const OPENER = 'animate-arrive motion-reduce:animate-none';
 
 function padding({ spacing, collapseTop }: SectionContext) {
-  if (spacing === 'large') return 'py-32 md:py-48';
+  if (spacing === 'large') return collapseTop ? 'pb-32 md:pb-48' : 'py-32 md:py-48';
   return collapseTop ? 'pb-28 md:pb-44' : 'py-28 md:py-44';
 }
 
