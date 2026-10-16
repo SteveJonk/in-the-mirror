@@ -3,8 +3,10 @@ import {CogIcon} from '@sanity/icons/Cog'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {ImagesIcon} from '@sanity/icons/Images'
 import {MenuIcon} from '@sanity/icons/Menu'
+import {RefreshIcon} from '@sanity/icons/Refresh'
 import {MicrophoneIcon} from '@sanity/icons/Microphone'
 import type {StructureResolver} from 'sanity/structure'
+import {ClearCache} from './tools/ClearCache'
 import {MediaLibrary} from './tools/MediaTool'
 
 /**
@@ -64,6 +66,11 @@ export const structure: StructureResolver = (S) =>
             .documentId('formGeneralSettings')
             .title('Form settings'),
         ),
+      S.listItem()
+        .title('Refresh website')
+        .id('clearCache')
+        .icon(RefreshIcon)
+        .child(S.component(ClearCache).title('Refresh website').id('clearCache')),
       S.divider(),
       ...S.documentTypeListItems().filter(
         (item) =>
